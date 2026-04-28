@@ -9,11 +9,10 @@ echo "Starting deployment setup for MWB Tracker..."
 echo "Installing system dependencies..."
 if command -v apt &> /dev/null; then
     sudo apt update && sudo apt upgrade -y
-    sudo apt install -y nginx python3-pip python3-venv git curl
+    sudo apt install -y nginx python3.12 python3.12-venv python3-pip git curl
 elif command -v yum &> /dev/null; then
     sudo yum update -y
-    sudo yum install -y nginx python3-pip git curl
-    # Amazon Linux 2023 comes with python venv module built-in, no need for python3-venv package
+    sudo yum install -y nginx python3.11 python3.11-pip git curl
 else
     echo "Unsupported package manager. Please use Ubuntu (apt) or Amazon Linux (yum)."
     exit 1
@@ -56,7 +55,9 @@ echo "Setting up backend..."
 cd backend
 
 # Use a stable python version to avoid compiling Rust packages from source
-if command -v python3.12 &> /dev/null; then
+if command -v python3.11 &> /dev/null; then
+    PYTHON_CMD="python3.11"
+elif command -v python3.12 &> /dev/null; then
     PYTHON_CMD="python3.12"
 elif command -v python3.10 &> /dev/null; then
     PYTHON_CMD="python3.10"
@@ -65,6 +66,8 @@ else
 fi
 
 echo "Using Python version: $PYTHON_CMD"
+# Remove any broken virtual environment
+rm -rf venv
 $PYTHON_CMD -m venv venv
 source venv/bin/activate
 
