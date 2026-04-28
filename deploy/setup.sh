@@ -41,7 +41,18 @@ cd $USER_HOME/must-win-battle
 # 4. Setup Backend
 echo "Setting up backend..."
 cd backend
-python3 -m venv venv
+
+# Use a stable python version to avoid compiling Rust packages from source
+if command -v python3.12 &> /dev/null; then
+    PYTHON_CMD="python3.12"
+elif command -v python3.10 &> /dev/null; then
+    PYTHON_CMD="python3.10"
+else
+    PYTHON_CMD="python3"
+fi
+
+echo "Using Python version: $PYTHON_CMD"
+$PYTHON_CMD -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
 
