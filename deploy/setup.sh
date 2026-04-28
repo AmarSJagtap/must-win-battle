@@ -25,11 +25,15 @@ else
     USER_HOME=$HOME
 fi
 
-# 3. Clone Repository (if not already done)
+# 3. Clone or Pull Repository
 if [ ! -d "$USER_HOME/must-win-battle" ]; then
     echo "Cloning repository..."
     cd $USER_HOME
     git clone https://github.com/AmarSJagtap/must-win-battle.git
+else
+    echo "Repository already exists. Pulling latest changes..."
+    cd $USER_HOME/must-win-battle
+    git pull
 fi
 
 cd $USER_HOME/must-win-battle
