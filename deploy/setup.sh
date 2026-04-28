@@ -67,6 +67,10 @@ fi
 echo "Using Python version: $PYTHON_CMD"
 $PYTHON_CMD -m venv venv
 source venv/bin/activate
+
+# Upgrade pip, setuptools, and wheel to ensure we download pre-built binaries (no Rust compiling needed)
+pip install --upgrade pip setuptools wheel
+
 pip install -r requirements.txt
 
 # Copy environment variables if provided
