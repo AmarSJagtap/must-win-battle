@@ -1,0 +1,1334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MWB Tracker — Must-Win Battles</title>
+<style>
+:root {
+  --navy:#1a2b5e; --navy2:#1e3a8a; --blue:#2563eb; --blue-light:#eff6ff;
+  --green:#16a34a; --green-light:#f0fdf4; --amber:#d97706; --amber-light:#fffbeb;
+  --red:#dc2626; --red-light:#fef2f2; --purple:#7c3aed; --purple-light:#f5f3ff;
+  --cyan:#0891b2; --cyan-light:#ecfeff;
+  --gray50:#f8fafc; --gray100:#f1f5f9; --gray200:#e2e8f0; --gray300:#cbd5e1;
+  --gray400:#94a3b8; --gray500:#64748b; --gray600:#475569; --gray700:#334155;
+  --gray800:#1e293b; --gray900:#0f172a;
+  --white:#ffffff; --font:'Inter',system-ui,sans-serif; --radius:10px;
+  --shadow:0 1px 3px rgba(0,0,0,0.1),0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md:0 4px 6px rgba(0,0,0,0.07),0 2px 4px rgba(0,0,0,0.06);
+  --shadow-lg:0 10px 15px rgba(0,0,0,0.1),0 4px 6px rgba(0,0,0,0.05);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--gray100);color:var(--gray800);min-height:100vh;display:flex;}
+
+/* SIDEBAR */
+.sidebar{width:240px;flex-shrink:0;background:var(--gray900);display:flex;flex-direction:column;min-height:100vh;position:fixed;top:0;left:0;bottom:0;z-index:50;}
+.sidebar-brand{padding:20px 20px 16px;border-bottom:1px solid rgba(255,255,255,0.08);}
+.sidebar-brand .brand-icon{width:36px;height:36px;border-radius:8px;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:18px;margin-bottom:8px;}
+.sidebar-brand .brand-name{color:#fff;font-weight:700;font-size:15px;}
+.sidebar-brand .brand-sub{color:var(--gray400);font-size:12px;}
+.sidebar-nav{flex:1;padding:16px 12px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;cursor:pointer;color:var(--gray400);font-size:14px;font-weight:500;transition:all 0.15s;margin-bottom:2px;border:none;background:none;width:100%;text-align:left;}
+.nav-item:hover{background:rgba(255,255,255,0.07);color:#fff;}
+.nav-item.active{background:var(--blue);color:#fff;}
+.nav-item .ni{font-size:16px;width:20px;text-align:center;}
+.sidebar-footer{padding:16px 12px;border-top:1px solid rgba(255,255,255,0.08);}
+.new-project-btn{display:flex;align-items:center;gap:8px;width:100%;padding:10px 14px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;transition:background 0.15s;font-family:var(--font);}
+.new-project-btn:hover{background:#1d4ed8;}
+
+/* MAIN AREA */
+.main-wrap{margin-left:240px;flex:1;display:flex;flex-direction:column;min-height:100vh;}
+
+/* TOP BAR */
+.topbar{background:var(--white);border-bottom:1px solid var(--gray200);padding:0 28px;height:56px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:40;box-shadow:var(--shadow);}
+.topbar-title{font-size:16px;font-weight:600;color:var(--gray800);}
+.topbar-search{margin-left:auto;position:relative;}
+.topbar-search input{border:1px solid var(--gray200);border-radius:8px;padding:7px 12px 7px 34px;font-size:13px;color:var(--gray700);background:var(--gray50);outline:none;width:220px;font-family:var(--font);}
+.topbar-search input:focus{border-color:var(--blue);background:#fff;}
+.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--gray400);font-size:14px;}
+.topbar-actions{display:flex;align-items:center;gap:8px;}
+.topbar-btn{border:1px solid var(--gray200);background:var(--white);border-radius:8px;padding:7px 14px;font-size:13px;font-weight:500;cursor:pointer;color:var(--gray600);font-family:var(--font);display:flex;align-items:center;gap:6px;transition:all 0.15s;}
+.topbar-btn:hover{background:var(--gray50);border-color:var(--gray300);}
+.topbar-btn.primary{background:var(--blue);color:#fff;border-color:var(--blue);}
+.topbar-btn.primary:hover{background:#1d4ed8;}
+.user-av{width:34px;height:34px;border-radius:50%;background:var(--blue);color:#fff;font-weight:700;font-size:13px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+
+/* PAGE CONTENT */
+.page{padding:28px;display:none;}
+.page.active{display:block;}
+
+/* STAT CARDS ROW */
+.stats-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px;margin-bottom:28px;}
+.stat-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--gray200);padding:16px 18px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow);}
+.stat-icon{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.stat-icon.blue{background:var(--blue-light);}
+.stat-icon.green{background:var(--green-light);}
+.stat-icon.amber{background:var(--amber-light);}
+.stat-icon.red{background:var(--red-light);}
+.stat-icon.purple{background:var(--purple-light);}
+.stat-icon.pink{background:#fdf2f8;}
+.stat-val{font-size:28px;font-weight:700;color:var(--gray900);line-height:1;}
+.stat-label{font-size:12px;color:var(--gray500);margin-top:2px;}
+
+/* FILTER ROW */
+.filter-row{display:flex;align-items:center;gap:10px;margin-bottom:20px;}
+.filter-row h2{font-size:18px;font-weight:700;color:var(--gray900);flex:1;}
+.filter-select{border:1px solid var(--gray200);border-radius:8px;padding:7px 12px;font-size:13px;color:var(--gray700);background:var(--white);outline:none;font-family:var(--font);cursor:pointer;}
+.view-toggle{display:flex;border:1px solid var(--gray200);border-radius:8px;overflow:hidden;}
+.view-btn{border:none;background:var(--white);padding:7px 10px;cursor:pointer;color:var(--gray400);font-size:15px;transition:all 0.15s;}
+.view-btn.active{background:var(--blue);color:#fff;}
+
+/* PROJECT CARDS */
+.projects-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+.proj-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--gray200);overflow:hidden;cursor:pointer;transition:box-shadow 0.2s,transform 0.15s;box-shadow:var(--shadow);}
+.proj-card:hover{box-shadow:var(--shadow-md);transform:translateY(-2px);}
+.proj-card-top-bar{height:4px;}
+.proj-card-top-bar.red{background:var(--red);}
+.proj-card-top-bar.amber{background:var(--amber);}
+.proj-card-top-bar.green{background:var(--green);}
+.proj-card-body{padding:16px 18px;}
+.proj-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;}
+.proj-id{font-size:12px;font-weight:600;color:var(--blue);}
+.priority-pill{font-size:11px;font-weight:700;padding:2px 9px;border-radius:20px;letter-spacing:0.3px;}
+.priority-pill.critical{background:#fef2f2;color:var(--red);}
+.priority-pill.high{background:var(--amber-light);color:var(--amber);}
+.priority-pill.medium{background:var(--green-light);color:var(--green);}
+.proj-title{font-size:15px;font-weight:700;color:var(--gray900);margin-bottom:8px;line-height:1.3;}
+.proj-dept-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.dept-tag{font-size:11px;padding:2px 9px;border-radius:6px;font-weight:500;}
+.dept-tag.hr{background:#fdf2f8;color:#9d174d;}
+.dept-tag.ops{background:#fff7ed;color:#c2410c;}
+.dept-tag.sc{background:var(--cyan-light);color:var(--cyan);}
+.dept-tag.tech{background:var(--blue-light);color:var(--blue);}
+.dept-tag.com{background:var(--purple-light);color:var(--purple);}
+.dept-tag.default{background:var(--gray100);color:var(--gray600);}
+.proj-owner{font-size:12px;color:var(--gray500);display:flex;align-items:center;gap:4px;}
+.prog-label{display:flex;justify-content:space-between;font-size:12px;color:var(--gray500);margin-bottom:5px;}
+.prog-bar{background:var(--gray100);border-radius:4px;height:6px;overflow:hidden;margin-bottom:12px;}
+.prog-fill{height:100%;border-radius:4px;}
+.prog-fill.red{background:var(--red);}
+.prog-fill.amber{background:var(--amber);}
+.prog-fill.green{background:var(--green);}
+.proj-card-footer{display:flex;align-items:center;justify-content:space-between;padding-top:10px;border-top:1px solid var(--gray100);}
+.status-chip{font-size:11px;font-weight:600;padding:4px 10px;border-radius:6px;}
+.status-chip.on-track{background:var(--green-light);color:var(--green);}
+.status-chip.at-risk{background:var(--amber-light);color:var(--amber);}
+.status-chip.off-track{background:var(--red-light);color:var(--red);}
+.status-chip.completed{background:var(--blue-light);color:var(--blue);}
+.card-stats{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--gray500);}
+.card-stat{display:flex;align-items:center;gap:4px;}
+.card-stat .dot{width:8px;height:8px;border-radius:50%;}
+.card-stat .dot.red{background:var(--red);}
+.review-due{font-size:11px;color:var(--gray400);margin-top:6px;display:flex;align-items:center;gap:4px;}
+
+/* PROJECT DETAIL PAGE */
+.detail-page{display:none;}
+.detail-page.active{display:block;}
+.back-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.back-btn{display:flex;align-items:center;gap:6px;background:var(--white);border:1px solid var(--gray200);border-radius:8px;padding:7px 14px;font-size:13px;font-weight:500;cursor:pointer;color:var(--gray600);font-family:var(--font);transition:all 0.15s;}
+.back-btn:hover{background:var(--gray50);}
+.back-bar-right{display:flex;gap:8px;}
+
+/* PROJECT HEADER CARD */
+.proj-header-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--gray200);padding:24px 28px;margin-bottom:16px;display:flex;align-items:flex-start;gap:20px;box-shadow:var(--shadow);}
+.proj-icon-big{width:60px;height:60px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:28px;flex-shrink:0;}
+.proj-header-info{flex:1;}
+.proj-header-id{font-size:13px;font-weight:600;color:var(--blue);margin-bottom:4px;}
+.proj-header-title{font-size:22px;font-weight:700;color:var(--gray900);margin-bottom:10px;}
+.proj-header-meta{display:flex;align-items:center;gap:18px;flex-wrap:wrap;}
+.meta-item{font-size:13px;color:var(--gray500);display:flex;align-items:center;gap:5px;}
+.meta-item strong{color:var(--gray700);}
+.ai-badge{background:var(--amber-light);color:var(--amber);font-size:12px;font-weight:600;padding:3px 10px;border-radius:6px;display:flex;align-items:center;gap:5px;}
+.proj-header-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px;}
+.off-track-badge{background:var(--red-light);color:var(--red);font-size:13px;font-weight:700;padding:5px 14px;border-radius:20px;}
+.on-track-badge{background:var(--green-light);color:var(--green);font-size:13px;font-weight:700;padding:5px 14px;border-radius:20px;}
+.at-risk-badge{background:var(--amber-light);color:var(--amber);font-size:13px;font-weight:700;padding:5px 14px;border-radius:20px;}
+.completed-badge{background:var(--blue-light);color:var(--blue);font-size:13px;font-weight:700;padding:5px 14px;border-radius:20px;}
+.progress-ring-wrap{text-align:center;}
+.progress-ring-label{font-size:11px;color:var(--gray400);margin-top:4px;}
+/* SVG ring */
+.ring-svg{width:70px;height:70px;}
+
+/* TABS */
+.tabs-bar{background:var(--white);border-radius:var(--radius);border:1px solid var(--gray200);padding:0 8px;margin-bottom:16px;display:flex;box-shadow:var(--shadow);}
+.tab-btn{padding:14px 18px;font-size:13px;font-weight:500;color:var(--gray500);background:none;border:none;border-bottom:2.5px solid transparent;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:6px;transition:all 0.15s;white-space:nowrap;margin-bottom:-1px;}
+.tab-btn:hover{color:var(--gray800);}
+.tab-btn.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:600;}
+
+/* TAB CONTENT */
+.tab-content{display:none;}
+.tab-content.active{display:block;}
+
+/* CHARTER */
+.charter-section{background:var(--white);border-radius:var(--radius);border:1px solid var(--gray200);padding:20px 24px;margin-bottom:14px;box-shadow:var(--shadow);}
+.charter-section h3{font-size:14px;font-weight:600;color:var(--gray800);margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+.charter-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.charter-field{display:flex;flex-direction:column;gap:5px;margin-bottom:10px;}
+.charter-field label{font-size:12px;font-weight:600;color:var(--gray500);text-transform:uppercase;letter-spacing:0.4px;}
+.charter-field input,.charter-field select,.charter-field textarea{border:1px solid var(--gray200);border-radius:7px;padding:8px 12px;font-size:13px;color:var(--gray700);background:var(--white);font-family:var(--font);outline:none;transition:border 0.15s;resize:vertical;}
+.charter-field input:focus,.charter-field select:focus,.charter-field textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,0.08);}
+.charter-field textarea{min-height:80px;}
+.save-btn{background:var(--blue);color:#fff;border:none;border-radius:7px;padding:9px 20px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);transition:background 0.15s;}
+.save-btn:hover{background:#1d4ed8;}
+.info-text{font-size:13px;color:var(--gray600);line-height:1.6;}
+
+/* MILESTONES */
+.section-action-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.section-action-bar h3{font-size:15px;font-weight:600;color:var(--gray800);}
+.add-btn{display:flex;align-items:center;gap:6px;background:var(--blue);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);transition:background 0.15s;}
+.add-btn:hover{background:#1d4ed8;}
+.add-btn.outline{background:var(--white);color:var(--blue);border:1.5px solid var(--blue);}
+.add-btn.outline:hover{background:var(--blue-light);}
+.milestone-progress-bar{background:var(--white);border-radius:var(--radius);border:1px solid var(--gray200);padding:16px 20px;margin-bottom:14px;display:flex;align-items:center;gap:16px;box-shadow:var(--shadow);}
+.milestone-progress-bar .flag{font-size:16px;}
+.mile-prog-text{font-size:14px;font-weight:500;color:var(--gray700);white-space:nowrap;}
+.mile-prog-bar{flex:1;background:var(--gray100);border-radius:4px;height:10px;overflow:hidden;}
+.mile-prog-fill{height:100%;border-radius:4px;background:var(--green);transition:width 0.3s;}
+.mile-prog-pct{font-size:14px;font-weight:600;color:var(--green);white-space:nowrap;}
+.milestone-list{display:flex;flex-direction:column;gap:12px;}
+.milestone-item{background:var(--white);border-radius:var(--radius);border:1px solid var(--gray200);padding:16px 20px;display:flex;align-items:flex-start;gap:14px;box-shadow:var(--shadow);}
+.mile-dot-col{display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:2px;}
+.mile-dot{width:16px;height:16px;border-radius:50%;flex-shrink:0;}
+.mile-dot.completed{background:var(--green);}
+.mile-dot.delayed{background:var(--red);}
+.mile-dot.in-progress{background:var(--amber);}
+.mile-dot.upcoming{background:var(--gray300);border:2px solid var(--gray300);}
+.mile-connector{width:2px;flex:1;background:var(--gray200);min-height:20px;}
+.mile-body{flex:1;}
+.mile-title{font-size:14px;font-weight:600;color:var(--gray900);margin-bottom:5px;}
+.mile-title span{font-size:12px;font-weight:400;color:var(--gray500);margin-right:6px;}
+.mile-dates{display:flex;gap:12px;font-size:12px;color:var(--gray500);margin-bottom:4px;flex-wrap:wrap;}
+.mile-dates .actual{color:var(--green);}
+.mile-note{font-size:12px;color:var(--gray500);font-style:italic;display:flex;align-items:center;gap:5px;}
+.mile-status-chip{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;white-space:nowrap;}
+.mile-status-chip.completed{background:var(--green-light);color:var(--green);}
+.mile-status-chip.delayed{background:var(--red-light);color:var(--red);}
+.mile-status-chip.in-progress{background:var(--amber-light);color:var(--amber);}
+.mile-status-chip.upcoming{background:var(--gray100);color:var(--gray500);}
+.mile-actions-icons{display:flex;gap:6px;align-items:center;margin-left:auto;flex-shrink:0;}
+.icon-btn{border:none;background:none;cursor:pointer;color:var(--gray400);font-size:14px;padding:4px;border-radius:5px;transition:all 0.15s;}
+.icon-btn:hover{background:var(--gray100);color:var(--gray700);}
+.icon-btn.del:hover{color:var(--red);}
+
+/* ACTIONS TAB */
+.action-item{background:var(--white);border-radius:var(--radius);border:1px solid var(--gray200);border-left:3px solid var(--red);padding:16px 18px;margin-bottom:10px;display:flex;align-items:flex-start;gap:14px;box-shadow:var(--shadow);}
+.action-item.open{border-left-color:var(--red);}
+.action-item.complete{border-left-color:var(--green);opacity:0.7;}
+.action-body{flex:1;}
+.action-title{font-size:14px;font-weight:600;color:var(--gray900);margin-bottom:8px;}
+.action-title.done-text{text-decoration:line-through;color:var(--gray400);}
+.action-meta-row{display:flex;align-items:center;gap:14px;font-size:12px;color:var(--gray500);flex-wrap:wrap;}
+.action-meta-row span{display:flex;align-items:center;gap:4px;}
+.action-status{font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;}
+.action-status.overdue{background:var(--red-light);color:var(--red);}
+.action-status.open{background:var(--blue-light);color:var(--blue);}
+.action-status.complete{background:var(--green-light);color:var(--green);}
+.action-comment{font-size:12px;color:var(--gray500);margin-top:6px;display:flex;align-items:center;gap:5px;font-style:italic;}
+.cb{width:16px;height:16px;accent-color:var(--blue);cursor:pointer;margin-top:2px;flex-shrink:0;}
+
+/* TEAM TAB */
+.team-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;}
+.team-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--gray200);padding:24px 18px;text-align:center;box-shadow:var(--shadow);}
+.team-av{width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#fff;margin:0 auto 12px;}
+.team-name{font-size:15px;font-weight:700;color:var(--gray900);margin-bottom:4px;}
+.team-role-chip{font-size:11px;font-weight:600;padding:3px 10px;border-radius:4px;display:inline-block;margin-bottom:10px;text-transform:uppercase;letter-spacing:0.5px;}
+.team-role-chip.sponsor{background:#fef3c7;color:#92400e;}
+.team-role-chip.lead{background:var(--blue-light);color:var(--blue);}
+.team-role-chip.member{background:var(--gray100);color:var(--gray600);}
+.team-email{font-size:12px;color:var(--blue);margin-bottom:3px;display:flex;align-items:center;justify-content:center;gap:5px;}
+.team-dept{font-size:12px;color:var(--gray500);display:flex;align-items:center;justify-content:center;gap:5px;margin-bottom:4px;}
+.team-load{font-size:12px;color:var(--gray500);display:flex;align-items:center;justify-content:center;gap:5px;}
+.team-card-actions{display:flex;justify-content:center;gap:8px;margin-top:12px;padding-top:12px;border-top:1px solid var(--gray100);}
+
+/* REVIEWS TAB */
+.review-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--gray200);overflow:hidden;margin-bottom:12px;box-shadow:var(--shadow);}
+.review-header{background:var(--gray50);padding:12px 18px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--gray200);}
+.review-av{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;}
+.review-author{font-size:14px;font-weight:600;color:var(--gray800);}
+.review-date{font-size:12px;color:var(--gray500);margin-left:4px;}
+.review-body{padding:14px 18px;font-size:13px;line-height:1.6;color:var(--gray700);}
+.review-form{background:var(--white);border-radius:var(--radius);border:1px solid var(--gray200);padding:20px;margin-bottom:14px;box-shadow:var(--shadow);}
+.review-form h4{font-size:14px;font-weight:600;margin-bottom:12px;color:var(--gray800);}
+
+/* ATTACHMENTS */
+.att-item{background:var(--white);border-radius:var(--radius);border:1px solid var(--gray200);padding:14px 18px;display:flex;align-items:center;gap:14px;margin-bottom:8px;box-shadow:var(--shadow);}
+.att-icon{font-size:26px;flex-shrink:0;}
+.att-body{flex:1;}
+.att-name{font-size:13px;font-weight:600;color:var(--gray800);}
+.att-meta{font-size:12px;color:var(--gray500);margin-top:2px;}
+.att-remove{border:none;background:none;color:var(--gray400);cursor:pointer;font-size:14px;padding:6px;border-radius:6px;}
+.att-remove:hover{color:var(--red);background:var(--red-light);}
+.upload-zone{border:2px dashed var(--gray200);border-radius:10px;padding:28px;text-align:center;cursor:pointer;color:var(--gray400);font-size:13px;transition:all 0.15s;margin-top:10px;}
+.upload-zone:hover{border-color:var(--blue);color:var(--blue);background:var(--blue-light);}
+
+/* REMINDERS */
+.reminder-item{background:var(--white);border-radius:var(--radius);border:1px solid var(--gray200);padding:14px 18px;display:flex;align-items:center;gap:14px;margin-bottom:8px;box-shadow:var(--shadow);}
+.reminder-icon-wrap{width:36px;height:36px;border-radius:8px;background:var(--amber-light);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.rem-body{flex:1;}
+.rem-title{font-size:13px;font-weight:600;color:var(--gray800);}
+.rem-meta{font-size:12px;color:var(--gray500);margin-top:2px;}
+.rem-remove{border:none;background:none;color:var(--gray400);cursor:pointer;font-size:14px;padding:6px;border-radius:6px;}
+.rem-remove:hover{color:var(--red);}
+
+/* MODALS */
+.modal-overlay{position:fixed;inset:0;background:rgba(15,23,42,0.5);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;}
+.modal-overlay.open{display:flex;}
+.modal{background:var(--white);border-radius:14px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-lg);animation:fadeUp 0.2s ease;}
+@keyframes fadeUp{from{transform:translateY(16px);opacity:0}to{transform:none;opacity:1}}
+.modal-header{padding:20px 24px;border-bottom:1px solid var(--gray200);display:flex;align-items:center;justify-content:space-between;}
+.modal-header h3{font-size:16px;font-weight:700;color:var(--gray900);}
+.modal-close{border:none;background:var(--gray100);border-radius:7px;width:30px;height:30px;cursor:pointer;font-size:16px;color:var(--gray500);display:flex;align-items:center;justify-content:center;}
+.modal-close:hover{background:var(--gray200);}
+.modal-body{padding:20px 24px;}
+.modal-footer{padding:16px 24px;border-top:1px solid var(--gray200);display:flex;gap:10px;justify-content:flex-end;}
+.form-row{margin-bottom:14px;}
+.form-row label{display:block;font-size:12px;font-weight:600;color:var(--gray500);text-transform:uppercase;letter-spacing:0.4px;margin-bottom:5px;}
+.form-row input,.form-row select,.form-row textarea{width:100%;border:1px solid var(--gray200);border-radius:7px;padding:9px 12px;font-size:13px;color:var(--gray700);font-family:var(--font);outline:none;transition:border 0.15s;background:var(--white);}
+.form-row input:focus,.form-row select:focus,.form-row textarea:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,0.08);}
+.form-row textarea{resize:vertical;min-height:70px;}
+.form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.btn{border-radius:7px;padding:9px 18px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--font);border:none;transition:all 0.15s;}
+.btn-primary{background:var(--blue);color:#fff;}
+.btn-primary:hover{background:#1d4ed8;}
+.btn-secondary{background:var(--white);color:var(--gray600);border:1px solid var(--gray200);}
+.btn-secondary:hover{background:var(--gray50);}
+.btn-danger{background:var(--white);color:var(--red);border:1px solid var(--red-light);}
+.btn-danger:hover{background:var(--red-light);}
+
+/* TOAST */
+.toast{position:fixed;bottom:28px;right:28px;background:var(--gray900);color:#fff;border-radius:10px;padding:12px 20px;font-size:13px;font-weight:500;z-index:200;display:flex;align-items:center;gap:10px;transform:translateY(80px);opacity:0;transition:all 0.3s;pointer-events:none;box-shadow:var(--shadow-lg);}
+.toast.show{transform:none;opacity:1;}
+.toast-icon.green{color:var(--green);}
+
+/* EMPTY */
+.empty-state{text-align:center;padding:40px;color:var(--gray400);}
+.empty-state .empty-icon{font-size:36px;margin-bottom:10px;}
+
+/* ALL ACTIONS PAGE */
+.all-actions-list{}
+.action-proj-group{margin-bottom:20px;}
+.action-proj-label{font-size:12px;font-weight:600;color:var(--blue);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;}
+
+/* REVIEW CALENDAR */
+.cal-empty{padding:40px;text-align:center;color:var(--gray400);background:var(--white);border-radius:var(--radius);border:1px solid var(--gray200);}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">⚡</div>
+    <div class="brand-name">MWB Tracker</div>
+    <div class="brand-sub">Must-Win Battles</div>
+  </div>
+  <nav class="sidebar-nav">
+    <button class="nav-item active" onclick="showPage('dashboard',this)"><span class="ni">📊</span> Dashboard</button>
+    <button class="nav-item" onclick="showPage('all-projects',this)"><span class="ni">📁</span> All Projects</button>
+    <button class="nav-item" onclick="showPage('all-actions',this)"><span class="ni">☰</span> Actions</button>
+    <button class="nav-item" onclick="showPage('reminders-page',this)"><span class="ni">🔔</span> Reminders</button>
+    <button class="nav-item" onclick="showPage('review-cal',this)"><span class="ni">📅</span> Review Calendar</button>
+  </nav>
+  <div class="sidebar-footer">
+    <button class="new-project-btn" onclick="openNewProjectModal()">+ New Project</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main-wrap">
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-title" id="topbarTitle">Dashboard</div>
+  <div class="topbar-search"><span class="search-icon">🔍</span><input placeholder="Search projects, actions..." oninput="searchAll(this.value)"></div>
+  <div class="topbar-actions">
+    <button class="topbar-btn" onclick="refreshStats()">↻</button>
+    <div class="user-av">PM</div>
+  </div>
+</div>
+
+<!-- DASHBOARD PAGE -->
+<div class="page active" id="page-dashboard" style="padding:28px;">
+  <div class="stats-grid" id="statsGrid"></div>
+  <div class="filter-row">
+    <h2>Project Portfolio</h2>
+    <select class="filter-select" id="statusFilter" onchange="filterProjects()">
+      <option value="">All Statuses</option>
+      <option value="On Track">On Track</option>
+      <option value="At Risk">At Risk</option>
+      <option value="Off Track">Off Track</option>
+      <option value="Completed">Completed</option>
+    </select>
+    <select class="filter-select" id="catFilter" onchange="filterProjects()">
+      <option value="">All Categories</option>
+      <option value="HR">HR</option>
+      <option value="Operations">Operations</option>
+      <option value="Supply Chain">Supply Chain</option>
+      <option value="Technology">Technology</option>
+      <option value="Commercial">Commercial</option>
+    </select>
+    <div class="view-toggle">
+      <button class="view-btn active" title="Grid">⊞</button>
+      <button class="view-btn" title="List">☰</button>
+    </div>
+  </div>
+  <div class="projects-grid" id="projectsGrid"></div>
+</div>
+
+<!-- ALL PROJECTS PAGE -->
+<div class="page" id="page-all-projects" style="padding:28px;">
+  <h2 style="font-size:20px;font-weight:700;margin-bottom:20px;">All Projects</h2>
+  <div class="projects-grid" id="allProjectsGrid"></div>
+</div>
+
+<!-- ALL ACTIONS PAGE -->
+<div class="page" id="page-all-actions" style="padding:28px;">
+  <h2 style="font-size:20px;font-weight:700;margin-bottom:20px;">All Actions</h2>
+  <div id="allActionsList"></div>
+</div>
+
+<!-- REMINDERS PAGE -->
+<div class="page" id="page-reminders-page" style="padding:28px;">
+  <h2 style="font-size:20px;font-weight:700;margin-bottom:20px;">All Reminders</h2>
+  <div id="allRemindersList"></div>
+</div>
+
+<!-- REVIEW CALENDAR PAGE -->
+<div class="page" id="page-review-cal" style="padding:28px;">
+  <h2 style="font-size:20px;font-weight:700;margin-bottom:20px;">Review Calendar</h2>
+  <div class="cal-empty"><div style="font-size:36px;margin-bottom:10px;">📅</div>Review calendar coming soon. Add reviews from each project's Reviews tab.</div>
+</div>
+
+<!-- PROJECT DETAIL PAGE -->
+<div class="page" id="page-project-detail" style="padding:28px;">
+  <div class="back-bar">
+    <button class="back-btn" onclick="goBack()">← Back to Portfolio</button>
+    <div class="back-bar-right">
+      <button class="topbar-btn" onclick="openEditCharter()">✏ Edit Charter</button>
+      <button class="topbar-btn">⇗ Share</button>
+      <button class="topbar-btn primary" onclick="switchTab('reviews')">+ Add Review</button>
+    </div>
+  </div>
+  <!-- Header -->
+  <div class="proj-header-card" id="detailHeader"></div>
+  <!-- Tabs -->
+  <div class="tabs-bar">
+    <button class="tab-btn active" onclick="switchTab('charter',this)">📋 Charter</button>
+    <button class="tab-btn" onclick="switchTab('milestones',this)">🏁 Milestones</button>
+    <button class="tab-btn" onclick="switchTab('actions',this)">☰ Actions</button>
+    <button class="tab-btn" onclick="switchTab('team',this)">👥 Team</button>
+    <button class="tab-btn" onclick="switchTab('reviews',this)">↻ Reviews</button>
+    <button class="tab-btn" onclick="switchTab('attachments',this)">📎 Attachments</button>
+    <button class="tab-btn" onclick="switchTab('reminders',this)">🔔 Reminders</button>
+  </div>
+  <!-- Tab Panels -->
+  <div id="tc-charter" class="tab-content active"></div>
+  <div id="tc-milestones" class="tab-content"></div>
+  <div id="tc-actions" class="tab-content"></div>
+  <div id="tc-team" class="tab-content"></div>
+  <div id="tc-reviews" class="tab-content"></div>
+  <div id="tc-attachments" class="tab-content"></div>
+  <div id="tc-reminders" class="tab-content"></div>
+</div>
+
+</div><!-- end main-wrap -->
+
+<!-- ===== MODALS ===== -->
+
+<!-- NEW PROJECT MODAL -->
+<div class="modal-overlay" id="newProjectModal">
+<div class="modal">
+  <div class="modal-header"><h3>+ New Must-Win Battle</h3><button class="modal-close" onclick="closeModal('newProjectModal')">✕</button></div>
+  <div class="modal-body">
+    <div class="form-grid-2">
+      <div class="form-row"><label>Project ID</label><input id="np-id" placeholder="MWB-HR-06"></div>
+      <div class="form-row"><label>Priority</label><select id="np-priority"><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select></div>
+    </div>
+    <div class="form-row"><label>Title *</label><input id="np-title" placeholder="Project title..."></div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Department</label><select id="np-dept"><option value="HR">HR</option><option value="Operations">Operations</option><option value="Supply Chain">Supply Chain</option><option value="Technology">Technology</option><option value="Commercial">Commercial</option></select></div>
+      <div class="form-row"><label>Status</label><select id="np-status"><option>On Track</option><option>At Risk</option><option>Off Track</option><option>Completed</option></select></div>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Sponsor</label><input id="np-sponsor" placeholder="Name"></div>
+      <div class="form-row"><label>Project Lead</label><input id="np-lead" placeholder="Name"></div>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Start Date</label><input id="np-start" type="date"></div>
+      <div class="form-row"><label>End Date</label><input id="np-end" type="date"></div>
+    </div>
+    <div class="form-row"><label>Background</label><textarea id="np-bg" placeholder="Project background and context..."></textarea></div>
+    <div class="form-row"><label>Objective</label><textarea id="np-obj" placeholder="Scope and success criteria..."></textarea></div>
+    <div class="form-row"><label>KPI / Target</label><input id="np-kpi" placeholder="e.g. Attrition < 10%"></div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-secondary" onclick="closeModal('newProjectModal')">Cancel</button>
+    <button class="btn btn-primary" onclick="createProject()">Create Battle</button>
+  </div>
+</div>
+</div>
+
+<!-- ADD MILESTONE MODAL -->
+<div class="modal-overlay" id="addMilestoneModal">
+<div class="modal">
+  <div class="modal-header"><h3 id="milestoneModalTitle">Add Milestone</h3><button class="modal-close" onclick="closeModal('addMilestoneModal')">✕</button></div>
+  <div class="modal-body">
+    <div class="form-row"><label>Milestone Title *</label><input id="ml-title" placeholder="e.g. Leadership Academy Launch"></div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Planned Date</label><input id="ml-planned" type="date"></div>
+      <div class="form-row"><label>Actual Date</label><input id="ml-actual" type="date"></div>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Status</label><select id="ml-status"><option value="upcoming">Upcoming</option><option value="in-progress">In Progress</option><option value="completed">Completed</option><option value="delayed">Delayed</option></select></div>
+      <div class="form-row"><label>Owner</label><input id="ml-owner" placeholder="Responsible person"></div>
+    </div>
+    <div class="form-row"><label>Note</label><input id="ml-note" placeholder="Progress note or comment..."></div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-secondary" onclick="closeModal('addMilestoneModal')">Cancel</button>
+    <button class="btn btn-primary" onclick="saveMilestone()">Save Milestone</button>
+  </div>
+</div>
+</div>
+
+<!-- ADD ACTION MODAL -->
+<div class="modal-overlay" id="addActionModal">
+<div class="modal">
+  <div class="modal-header"><h3 id="actionModalTitle">Add Action</h3><button class="modal-close" onclick="closeModal('addActionModal')">✕</button></div>
+  <div class="modal-body">
+    <div class="form-row"><label>Action Description *</label><textarea id="ac-title" placeholder="Describe the action item..."></textarea></div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Responsible</label><input id="ac-resp" placeholder="Person responsible"></div>
+      <div class="form-row"><label>Due Date</label><input id="ac-due" type="date"></div>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Priority</label><select id="ac-priority"><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select></div>
+      <div class="form-row"><label>Status</label><select id="ac-status"><option value="open">Open</option><option value="overdue">Overdue</option><option value="complete">Complete</option></select></div>
+    </div>
+    <div class="form-row"><label>Comment</label><input id="ac-comment" placeholder="Additional context or escalation note..."></div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-secondary" onclick="closeModal('addActionModal')">Cancel</button>
+    <button class="btn btn-primary" onclick="saveAction()">Save Action</button>
+  </div>
+</div>
+</div>
+
+<!-- ADD TEAM MEMBER MODAL -->
+<div class="modal-overlay" id="addTeamModal">
+<div class="modal">
+  <div class="modal-header"><h3 id="teamModalTitle">Add Team Member</h3><button class="modal-close" onclick="closeModal('addTeamModal')">✕</button></div>
+  <div class="modal-body">
+    <div class="form-grid-2">
+      <div class="form-row"><label>Full Name *</label><input id="tm-name" placeholder="Full name"></div>
+      <div class="form-row"><label>Role</label><select id="tm-role"><option value="member">Member</option><option value="lead">Project Lead</option><option value="sponsor">Sponsor</option></select></div>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Email</label><input id="tm-email" placeholder="email@company.com"></div>
+      <div class="form-row"><label>Department</label><input id="tm-dept" placeholder="HR, Finance, Ops..."></div>
+    </div>
+    <div class="form-row"><label>Workload (days)</label><input id="tm-load" type="number" placeholder="e.g. 45"></div>
+    <div class="form-row"><label>Avatar Color</label><select id="tm-color">
+      <option value="#dc2626">Red</option><option value="#7c3aed">Purple</option><option value="#0891b2">Cyan</option>
+      <option value="#16a34a">Green</option><option value="#d97706">Amber</option><option value="#2563eb">Blue</option>
+      <option value="#db2777">Pink</option><option value="#0f172a">Dark</option>
+    </select></div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-secondary" onclick="closeModal('addTeamModal')">Cancel</button>
+    <button class="btn btn-primary" onclick="saveTeamMember()">Add Member</button>
+  </div>
+</div>
+</div>
+
+<!-- ADD REVIEW MODAL -->
+<div class="modal-overlay" id="addReviewModal">
+<div class="modal">
+  <div class="modal-header"><h3>Post Status Review</h3><button class="modal-close" onclick="closeModal('addReviewModal')">✕</button></div>
+  <div class="modal-body">
+    <div class="form-grid-2">
+      <div class="form-row"><label>Overall Status</label><select id="rv-status"><option>On Track</option><option>At Risk</option><option>Off Track</option><option>Completed</option></select></div>
+      <div class="form-row"><label>Progress %</label><input id="rv-progress" type="number" min="0" max="100" placeholder="0-100"></div>
+    </div>
+    <div class="form-row"><label>Review Notes *</label><textarea id="rv-notes" placeholder="Highlights, blockers, risks, next steps..."></textarea></div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Reviewed By</label><input id="rv-author" placeholder="Your name"></div>
+      <div class="form-row"><label>Review Date</label><input id="rv-date" type="date"></div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-secondary" onclick="closeModal('addReviewModal')">Cancel</button>
+    <button class="btn btn-primary" onclick="saveReview()">Post Review</button>
+  </div>
+</div>
+</div>
+
+<!-- ADD REMINDER MODAL -->
+<div class="modal-overlay" id="addReminderModal">
+<div class="modal">
+  <div class="modal-header"><h3>Add Reminder</h3><button class="modal-close" onclick="closeModal('addReminderModal')">✕</button></div>
+  <div class="modal-body">
+    <div class="form-row"><label>Reminder Text *</label><input id="rem-text" placeholder="e.g. Monthly review update due"></div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Date</label><input id="rem-date" type="date"></div>
+      <div class="form-row"><label>Frequency</label><select id="rem-freq"><option>One-time</option><option>Weekly</option><option>Monthly</option><option>Quarterly</option></select></div>
+    </div>
+    <div class="form-row"><label>Notify</label><input id="rem-notify" placeholder="email@company.com (optional)"></div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-secondary" onclick="closeModal('addReminderModal')">Cancel</button>
+    <button class="btn btn-primary" onclick="saveReminder()">Set Reminder</button>
+  </div>
+</div>
+</div>
+
+<!-- EDIT CHARTER MODAL -->
+<div class="modal-overlay" id="editCharterModal">
+<div class="modal" style="max-width:660px;">
+  <div class="modal-header"><h3>Edit Charter</h3><button class="modal-close" onclick="closeModal('editCharterModal')">✕</button></div>
+  <div class="modal-body">
+    <div class="form-grid-2">
+      <div class="form-row"><label>Project ID</label><input id="ec-id"></div>
+      <div class="form-row"><label>Priority</label><select id="ec-priority"><option>Critical</option><option>High</option><option>Medium</option><option>Low</option></select></div>
+    </div>
+    <div class="form-row"><label>Title *</label><input id="ec-title"></div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Department</label><select id="ec-dept"><option value="HR">HR</option><option value="Operations">Operations</option><option value="Supply Chain">Supply Chain</option><option value="Technology">Technology</option><option value="Commercial">Commercial</option></select></div>
+      <div class="form-row"><label>Status</label><select id="ec-status"><option>On Track</option><option>At Risk</option><option>Off Track</option><option>Completed</option></select></div>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Sponsor</label><input id="ec-sponsor"></div>
+      <div class="form-row"><label>Project Lead</label><input id="ec-lead"></div>
+    </div>
+    <div class="form-grid-2">
+      <div class="form-row"><label>Start Date</label><input id="ec-start" type="date"></div>
+      <div class="form-row"><label>End Date</label><input id="ec-end" type="date"></div>
+    </div>
+    <div class="form-row"><label>Progress %</label><input id="ec-progress" type="number" min="0" max="100"></div>
+    <div class="form-row"><label>Background</label><textarea id="ec-bg"></textarea></div>
+    <div class="form-row"><label>Scope & Success Criteria</label><textarea id="ec-scope"></textarea></div>
+    <div class="form-row"><label>Out of Scope</label><textarea id="ec-oos"></textarea></div>
+    <div class="form-row"><label>Deliverables & KPIs</label><textarea id="ec-kpis"></textarea></div>
+    <div class="form-row"><label>Risks</label><textarea id="ec-risks"></textarea></div>
+    <div class="form-row"><label>Background Material URL</label><input id="ec-url" placeholder="https://..."></div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-secondary" onclick="closeModal('editCharterModal')">Cancel</button>
+    <button class="btn btn-primary" onclick="saveCharter()">Save Charter</button>
+  </div>
+</div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"><span class="toast-icon green">✓</span><span id="toastMsg">Saved!</span></div>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+const S = {
+  projects: [],
+  activeId: null,
+  prevPage: 'dashboard',
+  editingMilestoneId: null,
+  editingActionId: null,
+  editingTeamId: null,
+};
+
+const DEPT_ICONS = {HR:'👤',Operations:'🏭','Supply Chain':'🚚',Technology:'💻',Commercial:'📣'};
+const DEPT_CLASSES = {HR:'hr',Operations:'ops','Supply Chain':'sc',Technology:'tech',Commercial:'com'};
+const AV_COLORS = ['#dc2626','#7c3aed','#0891b2','#16a34a','#d97706','#db2777','#2563eb','#0f172a'];
+const STATUS_COLOR_CLASS = {'On Track':'green','At Risk':'amber','Off Track':'red','Completed':'blue'};
+
+function uid() { return Date.now() + Math.floor(Math.random()*1000); }
+
+function seed() {
+  S.projects = [
+    {
+      id:1, projId:'MWB-HR-05', title:'Talent & Leadership Pipeline', dept:'HR',
+      status:'Off Track', priority:'High', progress:28,
+      sponsor:'Claire Dubois', lead:'Raj Patel', start:'2024-02-01', end:'2025-12-31',
+      background:'Employee engagement scores dropped 12 points. Regrettable attrition at 22% for high performers. This MWB addresses talent retention, leadership development and succession planning as critical business imperatives.',
+      scope:'Objective: Reduce regrettable attrition to below 10% and fill 80% of critical roles internally by 2026.\nSuccess Criteria:\n- Leadership academy launched\n- Succession plans for top 30 roles\n- Engagement score improved +15 pts\n- Retention programme ROI positive',
+      outOfScope:'- Graduate recruitment programme\n- Compensation benchmarking (separate initiative)\n- Site-level operational roles',
+      kpis:'1. Leadership Academy: cohort 1 completed Q2\n2. Succession plans: 30 roles mapped by Q3\n3. Engagement score: target 72% (from 60%)\n4. Attrition rate: <= 10% by year end\n5. Internal promotion rate: >= 60%',
+      risks:'1. Leadership bandwidth for academy participation\n2. Competitor poaching during programme\n3. Middle manager resistance\n4. Programme cost vs. budget constraints',
+      bgUrl:'https://sharepoint.company.com/sites/tcs/talent-pipeline',
+      milestones:[
+        {id:101,title:'Leadership Academy Programme Design',planned:'2024-03-31',actual:'2024-04-15',status:'completed',owner:'Raj Patel',note:'Completed'},
+        {id:102,title:'Cohort 1 Nominations (30 Leaders)',planned:'2024-05-31',actual:'2024-07-01',status:'delayed',owner:'Raj Patel',note:'Only 22 nominations received'},
+        {id:103,title:'Succession Plans – First 15 Roles',planned:'2024-09-30',actual:'',status:'delayed',owner:'Sofia Kowalczyk',note:'8 complete, 7 in review'},
+        {id:104,title:'Engagement Pulse Survey Results',planned:'2025-05-31',actual:'',status:'in-progress',owner:'HR Team',note:'Survey deployed, results pending'}
+      ],
+      actions:[
+        {id:201,title:'Secure commitment from 8 remaining business leaders for cohort nominations',responsible:'Raj Patel',due:'2025-04-25',priority:'High',status:'overdue',comment:'Escalated to CHRO',done:false},
+        {id:202,title:'Complete succession plan templates for 22 remaining roles',responsible:'Sofia Kowalczyk',due:'2025-06-30',priority:'High',status:'open',comment:'',done:false}
+      ],
+      team:[
+        {id:301,name:'Claire Dubois',role:'sponsor',email:'c.dubois@company.com',dept:'HR',load:10,color:'#dc2626'},
+        {id:302,name:'Raj Patel',role:'lead',email:'r.patel@company.com',dept:'HR',load:80,color:'#7c3aed'},
+        {id:303,name:'Sofia Kowalczyk',role:'member',email:'s.kowalczyk@company.com',dept:'L&D',load:45,color:'#0891b2'}
+      ],
+      reviews:[
+        {id:401,author:'Raj Patel',initials:'RP',color:'#7c3aed',date:'Oct 9, 2025',status:'Off Track',notes:'Nominations still at 22 of 30. Succession plan 8 of 15 complete. Escalation to CHRO on nominations. Recovery plan being drafted.',progress:28}
+      ],
+      attachments:[
+        {id:501,name:'Talent_Pipeline_Charter.pptx',type:'pptx',size:'4.1 MB',uploader:'Raj Patel',date:'Feb 2024'},
+        {id:502,name:'Cohort1_Nominations.xlsx',type:'xlsx',size:'320 KB',uploader:'HR Team',date:'Jul 2024'}
+      ],
+      reminders:[
+        {id:601,text:'Monthly review update due',date:'2025-11-10',freq:'Monthly',notify:'r.patel@company.com'},
+        {id:602,text:'CHRO escalation follow-up',date:'2025-10-20',freq:'One-time',notify:''}
+      ]
+    },
+    {
+      id:2, projId:'MWB-OPS-02', title:'Manufacturing Cost Optimisation', dept:'Operations',
+      status:'At Risk', priority:'Critical', progress:41,
+      sponsor:'James Wright', lead:'Priya Nair', start:'2025-01-01', end:'2025-12-31',
+      background:'Manufacturing costs have risen 14% YoY. This MWB targets 8% cost reduction through lean, automation and procurement optimisation.',
+      scope:'Objective: Achieve 8% cost reduction by Dec 2025.\nSuccess Criteria:\n- Lean rollout across 3 plants\n- Procurement savings ₹12Cr\n- Scrap rate below 2%\n- Automation ROI positive',
+      outOfScope:'- New product manufacturing\n- Headcount restructuring',
+      kpis:'1. Cost reduction: 8% YoY\n2. OEE: 82%\n3. Scrap rate: <2%\n4. Procurement savings: ₹12Cr',
+      risks:'1. Vendor delays on automation equipment\n2. Raw material price volatility\n3. Union pushback on process changes',
+      bgUrl:'',
+      milestones:[
+        {id:111,title:'Lean Assessment All Plants',planned:'2025-02-28',actual:'2025-03-05',status:'completed',owner:'Priya Nair',note:'Done'},
+        {id:112,title:'Lean Rollout Plant 1',planned:'2025-05-31',actual:'',status:'delayed',owner:'Ops Team',note:'6 weeks behind schedule'},
+        {id:113,title:'Automation GO-Live Line 3',planned:'2025-09-30',actual:'',status:'delayed',owner:'Engineering',note:'Equipment delivery delayed'},
+        {id:114,title:'Year-end Cost Review',planned:'2025-12-31',actual:'',status:'upcoming',owner:'Finance',note:''}
+      ],
+      actions:[
+        {id:211,title:'Escalate automation equipment delay to COO',responsible:'Priya Nair',due:'2025-10-18',priority:'Critical',status:'open',comment:'',done:false},
+        {id:212,title:'Complete lean training for all shift supervisors',responsible:'HR+Ops',due:'2025-11-15',priority:'Medium',status:'open',comment:'',done:false}
+      ],
+      team:[
+        {id:311,name:'James Wright',role:'sponsor',email:'j.wright@company.com',dept:'Operations',load:5,color:'#d97706'},
+        {id:312,name:'Priya Nair',role:'lead',email:'p.nair@company.com',dept:'Operations',load:90,color:'#16a34a'}
+      ],
+      reviews:[
+        {id:411,author:'Priya Nair',initials:'PN',color:'#16a34a',date:'Oct 8, 2025',status:'At Risk',notes:'Lean rollout 6 weeks behind. Automation equipment delayed 8 weeks. Cost savings tracking at 3.1% vs 5% target at this stage.',progress:41}
+      ],
+      attachments:[
+        {id:511,name:'Cost_Baseline_FY25.xlsx',type:'xlsx',size:'1.2 MB',uploader:'Finance',date:'Jan 2025'}
+      ],
+      reminders:[
+        {id:611,text:'COO escalation meeting',date:'2025-10-20',freq:'One-time',notify:'p.nair@company.com'}
+      ]
+    },
+    {
+      id:3, projId:'MWB-SC-01', title:'Supply Chain Resilience & Digitization', dept:'Supply Chain',
+      status:'On Track', priority:'Critical', progress:62,
+      sponsor:'Anna Müller', lead:'David Chen', start:'2025-01-01', end:'2025-12-31',
+      background:'Supply chain disruptions cost ₹45Cr in FY24. This MWB digitises and diversifies the supply chain to build resilience.',
+      scope:'Objective: Reduce supply disruption impact by 60% and achieve full digital visibility by Dec 2025.',
+      outOfScope:'- Last-mile logistics\n- Retail distribution',
+      kpis:'1. Supply disruption incidents: -60%\n2. Digital visibility: 100% Tier-1 suppliers\n3. Alternate sourcing: 3+ suppliers per critical material',
+      risks:'1. Supplier onboarding resistance\n2. IT integration complexity\n3. Change management at plant level',
+      bgUrl:'',
+      milestones:[
+        {id:121,title:'Supplier Risk Assessment',planned:'2025-02-28',actual:'2025-02-25',status:'completed',owner:'David Chen',note:'Done ahead of schedule'},
+        {id:122,title:'Digital Portal Launch',planned:'2025-06-30',actual:'2025-06-28',status:'completed',owner:'IT+SC',note:'On time'},
+        {id:123,title:'80% Supplier Onboarding',planned:'2025-10-31',actual:'',status:'in-progress',owner:'David Chen',note:'62% onboarded'},
+        {id:124,title:'Full Digitization Target',planned:'2025-12-31',actual:'',status:'upcoming',owner:'IT',note:''}
+      ],
+      actions:[
+        {id:221,title:'Onboard remaining 38% suppliers to digital portal',responsible:'David Chen',due:'2025-11-15',priority:'High',status:'open',comment:'',done:false},
+        {id:222,title:'Complete IT integration testing with SAP',responsible:'IT Lead',due:'2025-10-31',priority:'Medium',status:'open',comment:'',done:false},
+        {id:223,title:'Train procurement team on new system',responsible:'Training',due:'2025-11-01',priority:'Medium',status:'complete',comment:'',done:true}
+      ],
+      team:[
+        {id:321,name:'Anna Müller',role:'sponsor',email:'a.muller@company.com',dept:'SCM',load:8,color:'#db2777'},
+        {id:322,name:'David Chen',role:'lead',email:'d.chen@company.com',dept:'Supply Chain',load:85,color:'#0891b2'}
+      ],
+      reviews:[
+        {id:421,author:'David Chen',initials:'DC',color:'#0891b2',date:'Oct 12, 2025',status:'On Track',notes:'62% of suppliers onboarded. Digital portal live and performing well. SAP integration in final testing. On track for year-end target.',progress:62}
+      ],
+      attachments:[],
+      reminders:[{id:621,text:'Monthly supplier onboarding report',date:'2025-11-05',freq:'Monthly',notify:''}]
+    },
+    {
+      id:4, projId:'MWB-TECH-04', title:'Digital Transformation - ERP Upgrade', dept:'Technology',
+      status:'On Track', priority:'Critical', progress:35,
+      sponsor:'Michael Torres', lead:'Anita Sharma', start:'2025-01-01', end:'2026-06-30',
+      background:'Legacy ERP causing 22% process inefficiency. SAP S/4HANA migration to drive digital transformation across Finance, HR, and Operations.',
+      scope:'Objective: Full SAP S/4HANA go-live across all business units by June 2026.',
+      outOfScope:'- CRM systems\n- Shop floor MES integration (Phase 2)',
+      kpis:'1. Go-live: June 2026\n2. Data migration accuracy: 99.9%\n3. Process efficiency: +22%\n4. User adoption: >95% in 90 days',
+      risks:'1. Data migration complexity\n2. Business disruption during cutover\n3. Resource availability',
+      bgUrl:'',
+      milestones:[
+        {id:131,title:'Blueprint & Design Complete',planned:'2025-03-31',actual:'2025-03-28',status:'completed',owner:'Anita Sharma',note:''},
+        {id:132,title:'Development & Config Phase 1',planned:'2025-09-30',actual:'',status:'in-progress',owner:'Tech Team',note:'75% complete'},
+        {id:133,title:'User Acceptance Testing',planned:'2026-02-28',actual:'',status:'upcoming',owner:'All BUs',note:''},
+        {id:134,title:'Go-Live',planned:'2026-06-30',actual:'',status:'upcoming',owner:'Anita Sharma',note:''}
+      ],
+      actions:[
+        {id:231,title:'Complete data cleansing for Finance module',responsible:'Finance IT',due:'2025-11-30',priority:'High',status:'open',comment:'',done:false},
+        {id:232,title:'Finalize cutover plan and business continuity procedures',responsible:'Anita Sharma',due:'2025-12-31',priority:'Critical',status:'open',comment:'',done:false}
+      ],
+      team:[
+        {id:331,name:'Michael Torres',role:'sponsor',email:'m.torres@company.com',dept:'IT',load:5,color:'#2563eb'},
+        {id:332,name:'Anita Sharma',role:'lead',email:'a.sharma@company.com',dept:'Technology',load:95,color:'#16a34a'}
+      ],
+      reviews:[],
+      attachments:[
+        {id:531,name:'ERP_Blueprint.pdf',type:'pdf',size:'8.2 MB',uploader:'Anita Sharma',date:'Apr 2025'}
+      ],
+      reminders:[{id:631,text:'Phase 1 dev checkpoint',date:'2025-10-31',freq:'One-time',notify:''}]
+    },
+    {
+      id:5, projId:'MWB-COM-03', title:'Commercial Growth - New Market Entry', dept:'Commercial',
+      status:'On Track', priority:'High', progress:55,
+      sponsor:'Rachel Kim', lead:'Tom Bakker', start:'2025-01-01', end:'2025-12-31',
+      background:'Saturated domestic market. New market entry into SEA region targeted to add ₹80Cr revenue in 18 months.',
+      scope:'Objective: Establish commercial presence in 3 SEA markets and achieve ₹20Cr revenue by Dec 2025.',
+      outOfScope:'- Manufacturing in SEA\n- Own retail stores',
+      kpis:'1. Revenue: ₹20Cr from SEA by Dec 2025\n2. Markets entered: 3\n3. Distribution partners: 5+\n4. Brand awareness: 30% target segment',
+      risks:'1. Regulatory approvals in each market\n2. Currency exposure\n3. Local competitor response',
+      bgUrl:'',
+      milestones:[
+        {id:141,title:'Market Entry Strategy Approved',planned:'2025-01-31',actual:'2025-01-30',status:'completed',owner:'Tom Bakker',note:''},
+        {id:142,title:'Singapore & Malaysia Launch',planned:'2025-05-31',actual:'2025-06-10',status:'completed',owner:'SEA Team',note:'Slight delay on regulatory approval'},
+        {id:143,title:'Thailand Launch',planned:'2025-09-30',actual:'',status:'in-progress',owner:'Tom Bakker',note:'Regulatory approval 90% complete'},
+        {id:144,title:'₹20Cr Revenue Target',planned:'2025-12-31',actual:'',status:'upcoming',owner:'Commercial',note:''}
+      ],
+      actions:[
+        {id:241,title:'Secure final regulatory approval for Thailand',responsible:'Legal+Commercial',due:'2025-10-31',priority:'High',status:'open',comment:'',done:false},
+        {id:242,title:'Appoint Thailand distribution partner',responsible:'Tom Bakker',due:'2025-11-15',priority:'High',status:'open',comment:'',done:false}
+      ],
+      team:[
+        {id:341,name:'Rachel Kim',role:'sponsor',email:'r.kim@company.com',dept:'Commercial',load:5,color:'#db2777'},
+        {id:342,name:'Tom Bakker',role:'lead',email:'t.bakker@company.com',dept:'Commercial',load:80,color:'#d97706'}
+      ],
+      reviews:[
+        {id:431,author:'Tom Bakker',initials:'TB',color:'#d97706',date:'Oct 10, 2025',status:'On Track',notes:'Singapore tracking ₹6Cr revenue. Malaysia ₹4.5Cr. Thailand launch on schedule for Nov. Total ₹10.5Cr vs ₹12Cr target — slight lag but recoverable.',progress:55}
+      ],
+      attachments:[
+        {id:541,name:'SEA_Market_Entry_Plan.pptx',type:'pptx',size:'6.3 MB',uploader:'Tom Bakker',date:'Jan 2025'}
+      ],
+      reminders:[{id:641,text:'Q4 revenue review',date:'2025-11-20',freq:'Monthly',notify:''}]
+    }
+  ];
+}
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showPage(id, navEl) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  if (navEl) navEl.classList.add('active');
+  const titles = {dashboard:'Dashboard','all-projects':'All Projects','all-actions':'Actions','reminders-page':'Reminders','review-cal':'Review Calendar','project-detail':'Project Detail'};
+  document.getElementById('topbarTitle').textContent = titles[id]||'';
+  if (id==='all-projects') renderAllProjects();
+  if (id==='all-actions') renderAllActions();
+  if (id==='reminders-page') renderAllReminders();
+  if (id!=='project-detail') S.prevPage = id;
+}
+
+function goBack() {
+  showPage(S.prevPage);
+  document.querySelectorAll('.nav-item').forEach((n,i)=>{
+    if ((S.prevPage==='dashboard'&&i===0)||(S.prevPage==='all-projects'&&i===1)) n.classList.add('active');
+  });
+  if (S.prevPage==='dashboard') document.querySelector('.nav-item').classList.add('active');
+}
+
+// ============================================================
+// RENDER STATS
+// ============================================================
+function renderStats() {
+  const onT = S.projects.filter(p=>p.status==='On Track').length;
+  const atR = S.projects.filter(p=>p.status==='At Risk').length;
+  const offT = S.projects.filter(p=>p.status==='Off Track').length;
+  const comp = S.projects.filter(p=>p.status==='Completed').length;
+  const openAc = S.projects.reduce((a,p)=>a+p.actions.filter(ac=>!ac.done).length,0);
+  const overdue = S.projects.reduce((a,p)=>a+p.actions.filter(ac=>ac.status==='overdue').length,0);
+  document.getElementById('statsGrid').innerHTML = `
+  <div class="stat-card"><div class="stat-icon blue">📋</div><div><div class="stat-val">${S.projects.length}</div><div class="stat-label">Total Projects</div></div></div>
+  <div class="stat-card"><div class="stat-icon green">✅</div><div><div class="stat-val">${onT}</div><div class="stat-label">On Track</div></div></div>
+  <div class="stat-card"><div class="stat-icon amber">⚠</div><div><div class="stat-val">${atR}</div><div class="stat-label">At Risk</div></div></div>
+  <div class="stat-card"><div class="stat-icon red">✖</div><div><div class="stat-val">${offT}</div><div class="stat-label">Off Track</div></div></div>
+  <div class="stat-card"><div class="stat-icon purple">☰</div><div><div class="stat-val">${openAc}</div><div class="stat-label">Open Actions</div></div></div>
+  <div class="stat-card"><div class="stat-icon pink">⏰</div><div><div class="stat-val">${overdue}</div><div class="stat-label">Overdue Actions</div></div></div>`;
+}
+
+// ============================================================
+// RENDER PROJECT CARDS
+// ============================================================
+function filterProjects() {
+  const st = document.getElementById('statusFilter').value;
+  const cat = document.getElementById('catFilter').value;
+  const filtered = S.projects.filter(p=>(!st||p.status===st)&&(!cat||p.dept===cat));
+  renderCards(filtered, 'projectsGrid');
+}
+
+function renderAllProjects() { renderCards(S.projects,'allProjectsGrid'); }
+
+function renderCards(list, containerId) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  if (!list.length) { el.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">📋</div>No projects match your filters.</div>'; return; }
+  el.innerHTML = list.map(p => {
+    const sc = STATUS_COLOR_CLASS[p.status]||'green';
+    const openAc = p.actions.filter(a=>!a.done).length;
+    const overdueAc = p.actions.filter(a=>a.status==='overdue').length;
+    const nextReview = p.reminders[0]?.date||'';
+    return `
+    <div class="proj-card" onclick="openProject(${p.id})">
+      <div class="proj-card-top-bar ${sc}"></div>
+      <div class="proj-card-body">
+        <div class="proj-meta">
+          <span class="proj-id">${p.projId}</span>
+          <span class="priority-pill ${p.priority.toLowerCase()}">${p.priority.toUpperCase()}</span>
+        </div>
+        <div class="proj-title">${p.title}</div>
+        <div class="proj-dept-row">
+          <span class="dept-tag ${DEPT_CLASSES[p.dept]||'default'}">${p.dept}</span>
+          <span class="proj-owner">👤 ${p.lead}</span>
+        </div>
+        <div class="prog-label"><span>Progress</span><span>${p.progress}%</span></div>
+        <div class="prog-bar"><div class="prog-fill ${sc}" style="width:${p.progress}%"></div></div>
+        <div class="proj-card-footer">
+          <span class="status-chip ${p.status.toLowerCase().replace(' ','-')}">${p.status}</span>
+          <div class="card-stats">
+            ${openAc?`<span class="card-stat">☰ ${openAc}</span>`:''}
+            ${overdueAc?`<span class="card-stat"><span class="dot red"></span>${overdueAc}</span>`:''}
+          </div>
+        </div>
+        ${nextReview?`<div class="review-due">📅 Next reminder: ${nextReview}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// OPEN PROJECT
+// ============================================================
+function openProject(id) {
+  S.activeId = id;
+  const p = S.projects.find(x=>x.id===id);
+  if (!p) return;
+  renderDetailHeader(p);
+  switchTab('charter');
+  showPage('project-detail');
+  document.getElementById('topbarTitle').textContent = p.projId+' — '+p.title;
+}
+
+function renderDetailHeader(p) {
+  const sc = STATUS_COLOR_CLASS[p.status]||'green';
+  const badgeHtml = {
+    'On Track':'<span class="on-track-badge">On Track</span>',
+    'At Risk':'<span class="at-risk-badge">At Risk</span>',
+    'Off Track':'<span class="off-track-badge">Off Track</span>',
+    'Completed':'<span class="completed-badge">Completed</span>'
+  }[p.status]||'';
+  // SVG donut ring
+  const r=28, cx=35, cy=35, circ=2*Math.PI*r;
+  const dashArr = (p.progress/100)*circ;
+  const iconBg = {HR:'#fdf2f8',Operations:'#fff7ed','Supply Chain':'#ecfeff',Technology:'#eff6ff',Commercial:'#f5f3ff'}[p.dept]||'#f1f5f9';
+  document.getElementById('detailHeader').innerHTML = `
+  <div class="proj-icon-big" style="background:${iconBg};font-size:26px;">${DEPT_ICONS[p.dept]||'📋'}</div>
+  <div class="proj-header-info">
+    <div class="proj-header-id">${p.projId}</div>
+    <div class="proj-header-title">${p.title}</div>
+    <div class="proj-header-meta">
+      <span class="meta-item">👤 Sponsor: <strong>${p.sponsor}</strong></span>
+      <span class="meta-item">👤 Lead: <strong>${p.lead}</strong></span>
+      <span class="meta-item">📅 ${p.start} → ${p.end}</span>
+      <span class="meta-item">🏢 ${p.dept}</span>
+      <span class="ai-badge">🤖 AI Assessment Pending</span>
+    </div>
+  </div>
+  <div class="proj-header-right">
+    ${badgeHtml}
+    <div class="progress-ring-wrap">
+      <svg class="ring-svg" viewBox="0 0 70 70">
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#e2e8f0" stroke-width="7"/>
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${sc==='green'?'#16a34a':sc==='amber'?'#d97706':sc==='red'?'#dc2626':'#2563eb'}"
+          stroke-width="7" stroke-dasharray="${dashArr.toFixed(1)} ${circ.toFixed(1)}"
+          stroke-dashoffset="${(circ/4).toFixed(1)}" stroke-linecap="round"/>
+        <text x="${cx}" y="${cy+5}" text-anchor="middle" font-size="13" font-weight="700" fill="${sc==='green'?'#16a34a':sc==='amber'?'#d97706':sc==='red'?'#dc2626':'#2563eb'}">${p.progress}%</text>
+      </svg>
+      <div class="progress-ring-label">Overall Progress</div>
+    </div>
+  </div>`;
+}
+
+// ============================================================
+// TABS
+// ============================================================
+function switchTab(tab, el) {
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  if (el) el.classList.add('active');
+  else { document.querySelectorAll('.tab-btn').forEach(b=>{ if(b.getAttribute('onclick')&&b.getAttribute('onclick').includes(`'${tab}'`)) b.classList.add('active'); }); }
+  document.getElementById('tc-'+tab).classList.add('active');
+  const renders = {charter:renderCharter,milestones:renderMilestones,actions:renderActions,team:renderTeam,reviews:renderReviews,attachments:renderAttachments,reminders:renderRemindersTab};
+  if (renders[tab]) renders[tab]();
+  if (tab==='reviews') { document.getElementById('addReviewModal'); /* pre-fill date */ const d=document.getElementById('rv-date'); if(d) d.value=new Date().toISOString().split('T')[0]; }
+}
+
+// ============================================================
+// CHARTER TAB
+// ============================================================
+function renderCharter() {
+  const p = S.projects.find(x=>x.id===S.activeId); if (!p) return;
+  document.getElementById('tc-charter').innerHTML = `
+  <div class="charter-section">
+    <h3>ℹ Project Background</h3>
+    <p class="info-text">${p.background||'No background set.'}</p>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+    <div class="charter-section">
+      <h3>🎯 Scope & Success Criteria</h3>
+      <p class="info-text" style="white-space:pre-line;">${p.scope||'—'}</p>
+    </div>
+    <div class="charter-section">
+      <h3>🚫 Out of Scope</h3>
+      <p class="info-text" style="white-space:pre-line;">${p.outOfScope||'—'}</p>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+    <div class="charter-section">
+      <h3>🏆 Deliverables & KPIs</h3>
+      <p class="info-text" style="white-space:pre-line;">${p.kpis||'—'}</p>
+    </div>
+    <div class="charter-section">
+      <h3>⚠ Risks</h3>
+      <p class="info-text" style="white-space:pre-line;">${p.risks||'—'}</p>
+    </div>
+  </div>
+  ${p.bgUrl?`<div class="charter-section"><h3>🔗 Background Material</h3><a href="${p.bgUrl}" target="_blank" style="color:var(--blue);font-size:13px;">↗ ${p.bgUrl}</a></div>`:''}
+  `;
+}
+
+function openEditCharter() {
+  const p = S.projects.find(x=>x.id===S.activeId); if (!p) return;
+  document.getElementById('ec-id').value = p.projId;
+  document.getElementById('ec-title').value = p.title;
+  document.getElementById('ec-dept').value = p.dept;
+  document.getElementById('ec-status').value = p.status;
+  document.getElementById('ec-priority').value = p.priority;
+  document.getElementById('ec-sponsor').value = p.sponsor;
+  document.getElementById('ec-lead').value = p.lead;
+  document.getElementById('ec-start').value = p.start;
+  document.getElementById('ec-end').value = p.end;
+  document.getElementById('ec-progress').value = p.progress;
+  document.getElementById('ec-bg').value = p.background;
+  document.getElementById('ec-scope').value = p.scope;
+  document.getElementById('ec-oos').value = p.outOfScope;
+  document.getElementById('ec-kpis').value = p.kpis;
+  document.getElementById('ec-risks').value = p.risks;
+  document.getElementById('ec-url').value = p.bgUrl||'';
+  openModal('editCharterModal');
+}
+
+function saveCharter() {
+  const p = S.projects.find(x=>x.id===S.activeId); if (!p) return;
+  p.projId = document.getElementById('ec-id').value;
+  p.title = document.getElementById('ec-title').value;
+  p.dept = document.getElementById('ec-dept').value;
+  p.status = document.getElementById('ec-status').value;
+  p.priority = document.getElementById('ec-priority').value;
+  p.sponsor = document.getElementById('ec-sponsor').value;
+  p.lead = document.getElementById('ec-lead').value;
+  p.start = document.getElementById('ec-start').value;
+  p.end = document.getElementById('ec-end').value;
+  p.progress = parseInt(document.getElementById('ec-progress').value)||0;
+  p.background = document.getElementById('ec-bg').value;
+  p.scope = document.getElementById('ec-scope').value;
+  p.outOfScope = document.getElementById('ec-oos').value;
+  p.kpis = document.getElementById('ec-kpis').value;
+  p.risks = document.getElementById('ec-risks').value;
+  p.bgUrl = document.getElementById('ec-url').value;
+  closeModal('editCharterModal');
+  renderDetailHeader(p);
+  renderCharter();
+  renderStats();
+  toast('Charter saved!');
+}
+
+// ============================================================
+// MILESTONES
+// ============================================================
+function renderMilestones() {
+  const p = S.projects.find(x=>x.id===S.activeId); if (!p) return;
+  const done = p.milestones.filter(m=>m.status==='completed').length;
+  const pct = p.milestones.length ? Math.round((done/p.milestones.length)*100) : 0;
+  const statusLabel = {completed:'Completed',delayed:'Delayed','in-progress':'In Progress',upcoming:'Upcoming'};
+  document.getElementById('tc-milestones').innerHTML = `
+  <div class="section-action-bar">
+    <h3></h3>
+    <button class="add-btn" onclick="openAddMilestone()">+ Add Milestone</button>
+  </div>
+  <div class="milestone-progress-bar">
+    <span class="flag">🏁</span>
+    <span class="mile-prog-text">${done} of ${p.milestones.length} milestones completed</span>
+    <div class="mile-prog-bar"><div class="mile-prog-fill" style="width:${pct}%"></div></div>
+    <span class="mile-prog-pct">${pct}%</span>
+  </div>
+  <div class="milestone-list">
+  ${p.milestones.map((m,i)=>`
+  <div class="milestone-item">
+    <div class="mile-dot-col">
+      <div class="mile-dot ${m.status}"></div>
+      ${i<p.milestones.length-1?'<div class="mile-connector"></div>':''}
+    </div>
+    <div class="mile-body">
+      <div class="mile-title"><span>#${i+1}</span>${m.title}</div>
+      <div class="mile-dates">
+        <span>📅 Planned: ${m.planned||'TBD'}</span>
+        ${m.actual?`<span class="actual">✓ Actual: ${m.actual}</span>`:''}
+      </div>
+      ${m.note?`<div class="mile-note">🗒 ${m.note}</div>`:''}
+    </div>
+    <span class="mile-status-chip ${m.status}">${statusLabel[m.status]||m.status}</span>
+    <div class="mile-actions-icons">
+      <button class="icon-btn" onclick="editMilestone(${m.id})" title="Edit">✏</button>
+      <button class="icon-btn del" onclick="deleteMilestone(${m.id})" title="Delete">🗑</button>
+    </div>
+  </div>`).join('')}
+  </div>`;
+}
+
+function openAddMilestone() { S.editingMilestoneId=null; document.getElementById('milestoneModalTitle').textContent='Add Milestone'; ['ml-title','ml-owner','ml-note'].forEach(id=>document.getElementById(id).value=''); ['ml-planned','ml-actual'].forEach(id=>document.getElementById(id).value=''); document.getElementById('ml-status').value='upcoming'; openModal('addMilestoneModal'); }
+
+function editMilestone(id) {
+  const p=S.projects.find(x=>x.id===S.activeId); const m=p.milestones.find(x=>x.id===id);
+  S.editingMilestoneId=id; document.getElementById('milestoneModalTitle').textContent='Edit Milestone';
+  document.getElementById('ml-title').value=m.title; document.getElementById('ml-planned').value=m.planned||'';
+  document.getElementById('ml-actual').value=m.actual||''; document.getElementById('ml-status').value=m.status;
+  document.getElementById('ml-owner').value=m.owner||''; document.getElementById('ml-note').value=m.note||'';
+  openModal('addMilestoneModal');
+}
+
+function saveMilestone() {
+  const t=document.getElementById('ml-title').value.trim(); if(!t){toast('Title required','warn');return;}
+  const p=S.projects.find(x=>x.id===S.activeId);
+  const data={title:t,planned:document.getElementById('ml-planned').value,actual:document.getElementById('ml-actual').value,status:document.getElementById('ml-status').value,owner:document.getElementById('ml-owner').value,note:document.getElementById('ml-note').value};
+  if(S.editingMilestoneId){const m=p.milestones.find(x=>x.id===S.editingMilestoneId);Object.assign(m,data);}
+  else{p.milestones.push({id:uid(),...data});}
+  closeModal('addMilestoneModal'); renderMilestones(); toast('Milestone saved!');
+}
+
+function deleteMilestone(id) {
+  if(!confirm('Delete this milestone?'))return;
+  const p=S.projects.find(x=>x.id===S.activeId); p.milestones=p.milestones.filter(m=>m.id!==id);
+  renderMilestones(); toast('Milestone deleted');
+}
+
+// ============================================================
+// ACTIONS
+// ============================================================
+function renderActions() {
+  const p=S.projects.find(x=>x.id===S.activeId); if(!p) return;
+  const statusChip = (s)=>({overdue:`<span class="action-status overdue">● Overdue</span>`,open:`<span class="action-status open">● Open</span>`,complete:`<span class="action-status complete">● Complete</span>`}[s]||'');
+  document.getElementById('tc-actions').innerHTML = `
+  <div class="section-action-bar">
+    <h3></h3>
+    <button class="add-btn" onclick="openAddAction()">+ Add Action</button>
+  </div>
+  ${p.actions.length===0?'<div class="empty-state"><div class="empty-icon">☰</div>No actions yet.</div>':
+  p.actions.map(a=>`
+  <div class="action-item ${a.done?'complete':'open'}">
+    <input type="checkbox" class="cb" ${a.done?'checked':''} onchange="toggleAction(${a.id},this.checked)">
+    <div class="action-body">
+      <div class="action-title ${a.done?'done-text':''}">${a.title}</div>
+      <div class="action-meta-row">
+        <span>👤 ${a.responsible}</span>
+        <span>📅 Due: ${a.due}</span>
+        <span>🏴 ${a.priority}</span>
+        ${statusChip(a.status)}
+      </div>
+      ${a.comment?`<div class="action-comment">💬 ${a.comment}</div>`:''}
+    </div>
+    <div class="mile-actions-icons">
+      <button class="icon-btn" onclick="editAction(${a.id})">✏</button>
+      <button class="icon-btn del" onclick="deleteAction(${a.id})">🗑</button>
+    </div>
+  </div>`).join('')}`;
+}
+
+function openAddAction(){S.editingActionId=null;document.getElementById('actionModalTitle').textContent='Add Action';['ac-title','ac-resp','ac-comment'].forEach(id=>document.getElementById(id).value='');document.getElementById('ac-due').value='';document.getElementById('ac-priority').value='High';document.getElementById('ac-status').value='open';openModal('addActionModal');}
+
+function editAction(id){const p=S.projects.find(x=>x.id===S.activeId);const a=p.actions.find(x=>x.id===id);S.editingActionId=id;document.getElementById('actionModalTitle').textContent='Edit Action';document.getElementById('ac-title').value=a.title;document.getElementById('ac-resp').value=a.responsible;document.getElementById('ac-due').value=a.due;document.getElementById('ac-priority').value=a.priority;document.getElementById('ac-status').value=a.status;document.getElementById('ac-comment').value=a.comment||'';openModal('addActionModal');}
+
+function saveAction(){const t=document.getElementById('ac-title').value.trim();if(!t){toast('Description required','warn');return;}const p=S.projects.find(x=>x.id===S.activeId);const st=document.getElementById('ac-status').value;const data={title:t,responsible:document.getElementById('ac-resp').value,due:document.getElementById('ac-due').value,priority:document.getElementById('ac-priority').value,status:st,comment:document.getElementById('ac-comment').value,done:st==='complete'};if(S.editingActionId){const a=p.actions.find(x=>x.id===S.editingActionId);Object.assign(a,data);}else{p.actions.push({id:uid(),...data});}closeModal('addActionModal');renderActions();renderStats();toast('Action saved!');}
+
+function toggleAction(id,done){const p=S.projects.find(x=>x.id===S.activeId);const a=p.actions.find(x=>x.id===id);a.done=done;a.status=done?'complete':'open';renderActions();renderStats();toast(done?'Action complete!':'Action reopened');}
+
+function deleteAction(id){if(!confirm('Delete this action?'))return;const p=S.projects.find(x=>x.id===S.activeId);p.actions=p.actions.filter(a=>a.id!==id);renderActions();renderStats();toast('Action deleted');}
+
+// ============================================================
+// TEAM
+// ============================================================
+function renderTeam(){
+  const p=S.projects.find(x=>x.id===S.activeId); if(!p) return;
+  const roleLabel={sponsor:'SPONSOR',lead:'PROJECT LEAD',member:'MEMBER'};
+  const roleClass={sponsor:'sponsor',lead:'lead',member:'member'};
+  document.getElementById('tc-team').innerHTML=`
+  <div class="section-action-bar"><h3></h3><button class="add-btn" onclick="openAddTeam()">👤+ Add Member</button></div>
+  <div class="team-grid">
+  ${p.team.map(m=>`
+  <div class="team-card">
+    <div class="team-av" style="background:${m.color}">${m.name.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase()}</div>
+    <div class="team-name">${m.name}</div>
+    <span class="team-role-chip ${roleClass[m.role]||'member'}">${roleLabel[m.role]||m.role.toUpperCase()}</span>
+    <div class="team-email">✉ ${m.email}</div>
+    <div class="team-dept">🏢 ${m.dept}</div>
+    <div class="team-load">⏰ ${m.load} days load</div>
+    <div class="team-card-actions">
+      <button class="icon-btn" onclick="editTeamMember(${m.id})">✏</button>
+      <button class="icon-btn del" onclick="deleteTeamMember(${m.id})">🗑</button>
+    </div>
+  </div>`).join('')}
+  </div>`;
+}
+
+function openAddTeam(){S.editingTeamId=null;document.getElementById('teamModalTitle').textContent='Add Team Member';['tm-name','tm-email','tm-dept'].forEach(id=>document.getElementById(id).value='');document.getElementById('tm-load').value='';document.getElementById('tm-role').value='member';document.getElementById('tm-color').value='#2563eb';openModal('addTeamModal');}
+
+function editTeamMember(id){const p=S.projects.find(x=>x.id===S.activeId);const m=p.team.find(x=>x.id===id);S.editingTeamId=id;document.getElementById('teamModalTitle').textContent='Edit Member';document.getElementById('tm-name').value=m.name;document.getElementById('tm-email').value=m.email;document.getElementById('tm-dept').value=m.dept;document.getElementById('tm-load').value=m.load;document.getElementById('tm-role').value=m.role;document.getElementById('tm-color').value=m.color;openModal('addTeamModal');}
+
+function saveTeamMember(){const n=document.getElementById('tm-name').value.trim();if(!n){toast('Name required','warn');return;}const p=S.projects.find(x=>x.id===S.activeId);const data={name:n,role:document.getElementById('tm-role').value,email:document.getElementById('tm-email').value,dept:document.getElementById('tm-dept').value,load:parseInt(document.getElementById('tm-load').value)||0,color:document.getElementById('tm-color').value};if(S.editingTeamId){const m=p.team.find(x=>x.id===S.editingTeamId);Object.assign(m,data);}else{p.team.push({id:uid(),...data});}closeModal('addTeamModal');renderTeam();toast('Team member saved!');}
+
+function deleteTeamMember(id){if(!confirm('Remove this member?'))return;const p=S.projects.find(x=>x.id===S.activeId);p.team=p.team.filter(m=>m.id!==id);renderTeam();toast('Member removed');}
+
+// ============================================================
+// REVIEWS
+// ============================================================
+function renderReviews(){
+  const p=S.projects.find(x=>x.id===S.activeId); if(!p) return;
+  document.getElementById('tc-reviews').innerHTML=`
+  <div class="section-action-bar"><h3></h3><button class="add-btn" onclick="openAddReview()">+ Add Review</button></div>
+  ${p.reviews.length===0?'<div class="empty-state"><div class="empty-icon">↻</div>No reviews yet. Post the first update.</div>':
+  p.reviews.map(r=>`
+  <div class="review-card">
+    <div class="review-header">
+      <div class="review-av" style="background:${r.color}">${r.initials}</div>
+      <div><span class="review-author">${r.author}</span><span class="review-date">${r.date}</span></div>
+      <span class="status-chip ${r.status.toLowerCase().replace(' ','-')}" style="margin-left:auto;">${r.status}</span>
+      ${r.progress!=null?`<span style="font-size:12px;color:var(--gray500);margin-left:8px;">${r.progress}%</span>`:''}
+    </div>
+    <div class="review-body">${r.notes}</div>
+  </div>`).join('')}`;
+}
+
+function openAddReview(){document.getElementById('rv-date').value=new Date().toISOString().split('T')[0];document.getElementById('rv-notes').value='';document.getElementById('rv-author').value='';document.getElementById('rv-progress').value='';openModal('addReviewModal');}
+
+function saveReview(){const notes=document.getElementById('rv-notes').value.trim();if(!notes){toast('Notes required','warn');return;}const p=S.projects.find(x=>x.id===S.activeId);const st=document.getElementById('rv-status').value;const prog=parseInt(document.getElementById('rv-progress').value);const author=document.getElementById('rv-author').value||'Program Manager';const initials=author.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();const d=new Date(document.getElementById('rv-date').value||Date.now());const dateStr=d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});p.reviews.unshift({id:uid(),author,initials,color:AV_COLORS[Math.floor(Math.random()*AV_COLORS.length)],date:dateStr,status:st,notes,progress:isNaN(prog)?null:prog});p.status=st;if(!isNaN(prog)&&prog>=0&&prog<=100)p.progress=prog;closeModal('addReviewModal');renderDetailHeader(p);renderReviews();renderStats();toast('Review posted!');}
+
+// ============================================================
+// ATTACHMENTS
+// ============================================================
+function renderAttachments(){
+  const p=S.projects.find(x=>x.id===S.activeId); if(!p) return;
+  const icons={pptx:'📊',xlsx:'📗',pdf:'📄',docx:'📝',jpg:'🖼',png:'🖼',mp4:'🎬'};
+  document.getElementById('tc-attachments').innerHTML=`
+  <div class="section-action-bar"><h3>Attachments (${p.attachments.length})</h3></div>
+  ${p.attachments.map(a=>`
+  <div class="att-item">
+    <div class="att-icon">${icons[a.type]||'📁'}</div>
+    <div class="att-body"><div class="att-name">${a.name}</div><div class="att-meta">${a.size} · Uploaded by ${a.uploader} · ${a.date}</div></div>
+    <button class="att-remove" onclick="deleteAttachment(${a.id})" title="Remove">✕</button>
+  </div>`).join('')}
+  <div class="upload-zone" onclick="simulateUpload()">📎 Click to upload file (PPT, Excel, PDF, Images…)</div>`;
+}
+
+function simulateUpload(){const p=S.projects.find(x=>x.id===S.activeId);const files=[['Q4_Update.pptx','pptx','3.4 MB'],['Budget_Sheet.xlsx','xlsx','890 KB'],['Risk_Matrix.pdf','pdf','1.2 MB'],['Photo.jpg','jpg','450 KB']];const f=files[Math.floor(Math.random()*files.length)];p.attachments.push({id:uid(),name:f[0],type:f[1],size:f[2],uploader:'Program Manager',date:new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})});renderAttachments();toast('File uploaded!');}
+
+function deleteAttachment(id){if(!confirm('Remove this file?'))return;const p=S.projects.find(x=>x.id===S.activeId);p.attachments=p.attachments.filter(a=>a.id!==id);renderAttachments();toast('File removed');}
+
+// ============================================================
+// REMINDERS TAB
+// ============================================================
+function renderRemindersTab(){
+  const p=S.projects.find(x=>x.id===S.activeId); if(!p) return;
+  document.getElementById('tc-reminders').innerHTML=`
+  <div class="section-action-bar"><h3></h3><button class="add-btn" onclick="openModal('addReminderModal')">+ Add Reminder</button></div>
+  ${p.reminders.length===0?'<div class="empty-state"><div class="empty-icon">🔔</div>No reminders set.</div>':
+  p.reminders.map(r=>`
+  <div class="reminder-item">
+    <div class="reminder-icon-wrap">🔔</div>
+    <div class="rem-body"><div class="rem-title">${r.text}</div><div class="rem-meta">${r.freq} · ${r.date}${r.notify?` · 📧 ${r.notify}`:''}</div></div>
+    <button class="rem-remove" onclick="deleteReminder(${r.id})">✕</button>
+  </div>`).join('')}`;
+}
+
+function saveReminder(){const t=document.getElementById('rem-text').value.trim();if(!t){toast('Text required','warn');return;}const p=S.projects.find(x=>x.id===S.activeId);p.reminders.push({id:uid(),text:t,date:document.getElementById('rem-date').value,freq:document.getElementById('rem-freq').value,notify:document.getElementById('rem-notify').value});closeModal('addReminderModal');renderRemindersTab();toast('Reminder set!');}
+
+function deleteReminder(id){const p=S.projects.find(x=>x.id===S.activeId);p.reminders=p.reminders.filter(r=>r.id!==id);renderRemindersTab();toast('Reminder removed');}
+
+// ============================================================
+// ALL ACTIONS / REMINDERS PAGES
+// ============================================================
+function renderAllActions(){
+  const el=document.getElementById('allActionsList'); if(!el) return;
+  const statusChip=(s)=>({overdue:`<span class="action-status overdue">Overdue</span>`,open:`<span class="action-status open">Open</span>`,complete:`<span class="action-status complete">Complete</span>`}[s]||'');
+  let html='';
+  S.projects.forEach(p=>{
+    const open=p.actions.filter(a=>!a.done);
+    if(!open.length) return;
+    html+=`<div class="action-proj-label">${p.projId} — ${p.title}</div>`;
+    html+=open.map(a=>`<div class="action-item open" style="margin-bottom:8px;"><div class="action-body"><div class="action-title">${a.title}</div><div class="action-meta-row"><span>👤 ${a.responsible}</span><span>📅 ${a.due}</span><span>🏴 ${a.priority}</span>${statusChip(a.status)}</div></div></div>`).join('');
+  });
+  el.innerHTML=html||'<div class="empty-state"><div class="empty-icon">☰</div>No open actions across all projects.</div>';
+}
+
+function renderAllReminders(){
+  const el=document.getElementById('allRemindersList'); if(!el) return;
+  let html='';
+  S.projects.forEach(p=>{
+    if(!p.reminders.length) return;
+    html+=`<div class="action-proj-label">${p.projId} — ${p.title}</div>`;
+    html+=p.reminders.map(r=>`<div class="reminder-item" style="margin-bottom:8px;"><div class="reminder-icon-wrap">🔔</div><div class="rem-body"><div class="rem-title">${r.text}</div><div class="rem-meta">${r.freq} · ${r.date}</div></div></div>`).join('');
+  });
+  el.innerHTML=html||'<div class="empty-state"><div class="empty-icon">🔔</div>No reminders across any project.</div>';
+}
+
+// ============================================================
+// NEW PROJECT
+// ============================================================
+function openNewProjectModal(){['np-id','np-title','np-sponsor','np-lead','np-bg','np-obj','np-kpi'].forEach(id=>document.getElementById(id).value='');document.getElementById('np-start').value='';document.getElementById('np-end').value='';openModal('newProjectModal');}
+
+function createProject(){
+  const title=document.getElementById('np-title').value.trim();if(!title){toast('Title required','warn');return;}
+  const id=uid();
+  S.projects.push({id,projId:document.getElementById('np-id').value||`MWB-${S.projects.length+1}`,title,dept:document.getElementById('np-dept').value,status:document.getElementById('np-status').value,priority:document.getElementById('np-priority').value,progress:0,sponsor:document.getElementById('np-sponsor').value,lead:document.getElementById('np-lead').value,start:document.getElementById('np-start').value,end:document.getElementById('np-end').value,background:document.getElementById('np-bg').value,scope:document.getElementById('np-obj').value,outOfScope:'',kpis:document.getElementById('np-kpi').value,risks:'',bgUrl:'',milestones:[],actions:[],team:[],reviews:[],attachments:[],reminders:[]});
+  closeModal('newProjectModal');renderStats();filterProjects();toast('Project created!');
+}
+
+// ============================================================
+// SEARCH
+// ============================================================
+function searchAll(q){
+  if(!q){filterProjects();return;}
+  const lq=q.toLowerCase();
+  const filtered=S.projects.filter(p=>p.title.toLowerCase().includes(lq)||p.projId.toLowerCase().includes(lq)||p.lead.toLowerCase().includes(lq)||p.dept.toLowerCase().includes(lq));
+  renderCards(filtered,'projectsGrid');
+}
+
+function refreshStats(){renderStats();toast('Refreshed!');}
+
+// ============================================================
+// MODAL HELPERS
+// ============================================================
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+
+// ============================================================
+// TOAST
+// ============================================================
+function toast(msg,type='success'){const t=document.getElementById('toast');document.getElementById('toastMsg').textContent=msg;t.querySelector('.toast-icon').className='toast-icon '+(type==='warn'?'amber':'green');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2800);}
+
+// ============================================================
+// INIT
+// ============================================================
+seed();
+renderStats();
+filterProjects();
+</script>
+</body>
+</html>
