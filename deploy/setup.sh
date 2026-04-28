@@ -7,13 +7,26 @@ echo "Starting deployment setup for MWB Tracker..."
 
 # 1. Update and install dependencies
 echo "Installing system dependencies..."
-sudo apt update && sudo apt upgrade -y
-sudo apt install -y nginx python3-pip python3-venv git curl
+if command -v apt &> /dev/null; then
+    sudo apt update && sudo apt upgrade -y
+    sudo apt install -y nginx python3-pip python3-venv git curl
+elif command -v yum &> /dev/null; then
+    sudo yum update -y
+    sudo yum install -y nginx python3-pip git curl
+    # Amazon Linux 2023 comes with python venv module built-in, no need for python3-venv package
+else
+    echo "Unsupported package manager. Please use Ubuntu (apt) or Amazon Linux (yum)."
+    exit 1
+fi
 
 # 2. Install Node.js and PM2
 echo "Installing Node.js and PM2..."
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-sudo apt install -y nodejs
+if command -v apt &> /dev/null; then
+    sudo apt install -y nodejs
+elif command -v yum &> /dev/null; then
+    sudo yum install -y nodejs
+fi
 sudo npm install -g pm2
 
 # Detect correct home directory whether running as ubuntu or root
@@ -77,7 +90,18 @@ npm run build
 
 # 6. Configure Nginx
 echo "Configuring Nginx..."
-sudo cat > /etc/nginx/sites-available/mwb << EOF
+
+# Check if using Ubuntu structure (sites-available) or Amazon Linux structure (conf.d)
+if [ -d "/etc/nginx/sites-available" ]; then
+    NGINX_CONF_FILE="/etc/nginx/sites-available/mwb"
+    NGINX_LINK_FILE="/etc/nginx/sites-enabled/mwb"
+    sudo rm -f /etc/nginx/sites-enabled/default
+else
+    NGINX_CONF_FILE="/etc/nginx/conf.d/mwb.conf"
+    NGINX_LINK_FILE=""
+fi
+
+sudo cat > $NGINX_CONF_FILE << EOF
 server {
     listen 80;
     server_name _;
@@ -101,8 +125,10 @@ server {
 }
 EOF
 
-sudo ln -sf /etc/nginx/sites-available/mwb /etc/nginx/sites-enabled/
-sudo rm -f /etc/nginx/sites-enabled/default
+if [ -n "$NGINX_LINK_FILE" ]; then
+    sudo ln -sf $NGINX_CONF_FILE $NGINX_LINK_FILE
+fi
+
 sudo nginx -t
 sudo systemctl restart nginx
 
