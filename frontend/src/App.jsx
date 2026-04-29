@@ -412,6 +412,7 @@ export default function App() {
   const [showReview, setShowReview] = useState(false);
   const [showReminder, setShowReminder] = useState(false);
   const [showEditCharter, setShowEditCharter] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Edit IDs
   const [editMilestoneId, setEditMilestoneId] = useState(null);
@@ -931,13 +932,17 @@ export default function App() {
     setShowEditCharter(true);
   };
 
-  const handleDeleteProject = async () => {
+  const handleDeleteProject = () => {
     if (!user.is_admin) return toast('Admin access required.');
-    if (!window.confirm(`Are you SURE you want to delete the project "${activeProject.title}"? This cannot be undone.`)) return;
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDeleteProject = async () => {
+    setShowDeleteConfirm(false);
     try {
       await api.deleteProject(activeProject.id);
       toast('Project deleted successfully.');
-      loadDashboard();
+      loadDashboardData();
       setPage('dashboard');
     } catch (e) {
       toast('Failed to delete project.');
@@ -1302,6 +1307,26 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* Delete Confirmation Modal */}
+      <Modal open={showDeleteConfirm} onClose={() => setShowDeleteConfirm(false)} title="⚠️ Delete Project"
+        footer={<>
+          <button className="btn btn-secondary" onClick={() => setShowDeleteConfirm(false)}>No, Cancel</button>
+          <button className="btn" style={{ background: '#ef4444', color: '#fff', border: 'none' }} onClick={confirmDeleteProject}>Yes, Delete Permanently</button>
+        </>}>
+        <div style={{ textAlign: 'center', padding: '10px 0' }}>
+          <div style={{ fontSize: 48, marginBottom: 12 }}>🗑️</div>
+          <p style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>
+            Are you sure you want to delete <span style={{ color: '#ef4444' }}>"{activeProject?.title}"</span>?
+          </p>
+          <p style={{ fontSize: 14, color: '#888', lineHeight: 1.6 }}>
+            This will permanently delete the entire project including all milestones, actions, team members, reviews, attachments, and reminders.
+          </p>
+          <p style={{ fontSize: 13, color: '#ef4444', fontWeight: 600, marginTop: 10 }}>
+            ⚠️ This action cannot be undone. All data will be lost forever.
+          </p>
+        </div>
+      </Modal>
 
       <Chatbot />
       <Toast msg={toastMsg} show={toastShow} />

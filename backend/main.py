@@ -201,12 +201,23 @@ def update_project(pid: int, data: ProjectUpdate, user: User = Depends(require_u
 
 
 @app.delete("/api/projects/{pid}")
-def delete_project(pid: int, user: User = Depends(require_user), db: Session = Depends(get_db)):
-    p = db.query(Project).get(pid)
+def delete_project(pid: int, user: User = Depends(require_admin), db: Session = Depends(get_db)):
+    p = db.query(Project).filter(Project.id == pid).first()
     if not p: raise HTTPException(404, "Project not found")
-    # Log without project_id so the activity survives the cascade delete
-    log_activity(db, user, f"Project '{p.title}' deleted.", project_id=None, icon="delete", color="red")
+    title = p.title
+    # Delete the project first (cascade deletes all children)
     db.delete(p)
+    db.flush()
+    # Log activity without project_id so it survives the cascade
+    act = Activity(
+        text=f"Project '{title}' deleted.",
+        user_name=user.full_name or user.username,
+        project_id=None,
+        timestamp=datetime.now(timezone.utc).isoformat(),
+        icon="delete",
+        color="red"
+    )
+    db.add(act)
     db.commit()
     return {"ok": True}
 
