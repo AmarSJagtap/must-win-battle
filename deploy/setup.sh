@@ -3,6 +3,16 @@
 # Exit on error
 set -e
 
+install_nodejs() {
+    if command -v apt &> /dev/null; then
+        curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+        sudo apt install -y nodejs
+    elif command -v yum &> /dev/null; then
+        curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash -
+        sudo yum install -y nodejs
+    fi
+}
+
 echo "Starting deployment setup for MWB Tracker..."
 
 # 1. Update and install dependencies
@@ -20,12 +30,7 @@ fi
 
 # 2. Install Node.js and PM2
 echo "Installing Node.js and PM2..."
-curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-if command -v apt &> /dev/null; then
-    sudo apt install -y nodejs
-elif command -v yum &> /dev/null; then
-    sudo yum install -y nodejs
-fi
+install_nodejs
 sudo npm install -g pm2
 
 # Detect correct home directory whether running as ubuntu or root

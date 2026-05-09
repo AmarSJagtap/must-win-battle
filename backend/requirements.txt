@@ -10,5 +10,4 @@ google-generativeai
 openai
 PyPDF2
 openpyxl
-pyodbc
 python-dotenv

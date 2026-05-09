@@ -5,17 +5,15 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# Format: mssql+pyodbc://<user>:<password>@<server>/<database>?driver=ODBC+Driver+17+for+SQL+Server
-DATABASE_URL = os.environ.get("DATABASE_URL", "")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DEFAULT_DB_PATH = os.path.join(BASE_DIR, "mwb_tracker.db")
+DATABASE_URL = os.environ.get("DATABASE_URL", f"sqlite:///{DEFAULT_DB_PATH}")
 
-if not DATABASE_URL:
-    raise RuntimeError(
-        "DATABASE_URL environment variable is not set. "
-        "Set it in a .env file or your environment.\n"
-        "Example: mssql+pyodbc://user:pass@server/dbname?driver=ODBC+Driver+17+for+SQL+Server"
-    )
+engine_options = {}
+if DATABASE_URL.startswith("sqlite"):
+    engine_options["connect_args"] = {"check_same_thread": False}
 
-engine = create_engine(DATABASE_URL)
+engine = create_engine(DATABASE_URL, **engine_options)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
