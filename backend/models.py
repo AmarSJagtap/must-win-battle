@@ -7,10 +7,10 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, unique=True, nullable=False, index=True)
-    email = Column(String, unique=True, nullable=False)
-    full_name = Column(String, default="")
-    hashed_password = Column(String, nullable=False)
+    username = Column(String(150), unique=True, nullable=False, index=True)
+    email = Column(String(255), unique=True, nullable=False)
+    full_name = Column(String(255), default="")
+    hashed_password = Column(String(512), nullable=False)
     is_admin = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
 
@@ -22,7 +22,7 @@ class UserPermission(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    screen = Column(String, nullable=False)  # e.g. "dashboard", "all-projects", "all-actions", "reminders-page", "review-cal", "project-detail"
+    screen = Column(String(100), nullable=False)  # e.g. "dashboard", "all-projects", "all-actions", "reminders-page", "review-cal", "project-detail"
     can_access = Column(Boolean, default=True)
 
     user = relationship("User", back_populates="permissions")
