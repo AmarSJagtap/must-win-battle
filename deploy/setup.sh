@@ -116,7 +116,8 @@ fi
 
 # Start backend with PM2
 echo "Starting backend process..."
-pm2 start "uvicorn main:app --host 127.0.0.1 --port 8000" --name "mwb-backend"
+pm2 delete "mwb-backend" >/dev/null 2>&1 || true
+pm2 start "$USER_HOME/must-win-battle/backend/venv/bin/uvicorn" --name "mwb-backend" --cwd "$USER_HOME/must-win-battle/backend" -- main:app --host 127.0.0.1 --port 8000
 pm2 save
 
 # 5. Setup Frontend
