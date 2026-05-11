@@ -3,6 +3,25 @@
 # Exit on error
 set -e
 
+PYTHON_CMD=""
+
+install_supported_python_apt() {
+    for version in 3.13 3.12 3.11 3.10; do
+        if apt-cache show "python${version}" >/dev/null 2>&1 && apt-cache show "python${version}-venv" >/dev/null 2>&1; then
+            sudo apt install -y \
+                "python${version}" \
+                "python${version}-dev" \
+                "python${version}-venv" \
+                python3-pip
+            PYTHON_CMD="python${version}"
+            return 0
+        fi
+    done
+
+    echo "No supported Python version (3.10-3.13) is available from apt on this server."
+    exit 1
+}
+
 install_nodejs() {
     if command -v apt &> /dev/null; then
         curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
@@ -19,10 +38,12 @@ echo "Starting deployment setup for MWB Tracker..."
 echo "Installing system dependencies..."
 if command -v apt &> /dev/null; then
     sudo apt update && sudo apt upgrade -y
-    sudo apt install -y nginx python3 python3-dev python3-venv python3-pip build-essential pkg-config rustc cargo git curl
+    sudo apt install -y nginx build-essential pkg-config rustc cargo git curl
+    install_supported_python_apt
 elif command -v yum &> /dev/null; then
     sudo yum update -y
     sudo yum install -y nginx python3.11 python3.11-devel python3.11-pip gcc gcc-c++ rust cargo git curl
+    PYTHON_CMD="python3.11"
 else
     echo "Unsupported package manager. Please use Ubuntu (apt) or Amazon Linux (yum)."
     exit 1
@@ -59,15 +80,19 @@ cd $USER_HOME/must-win-battle
 echo "Setting up backend..."
 cd backend
 
-# Use a stable python version to avoid compiling Rust packages from source
-if command -v python3.11 &> /dev/null; then
-    PYTHON_CMD="python3.11"
-elif command -v python3.12 &> /dev/null; then
-    PYTHON_CMD="python3.12"
-elif command -v python3.10 &> /dev/null; then
-    PYTHON_CMD="python3.10"
-else
-    PYTHON_CMD="python3"
+# Use a supported Python version for binary wheels and Rust-based dependencies.
+if [ -z "$PYTHON_CMD" ]; then
+    for candidate in python3.13 python3.12 python3.11 python3.10; do
+        if command -v "$candidate" &> /dev/null; then
+            PYTHON_CMD="$candidate"
+            break
+        fi
+    done
+fi
+
+if [ -z "$PYTHON_CMD" ]; then
+    echo "No supported Python interpreter found. Install Python 3.10-3.13 before running deploy/setup.sh."
+    exit 1
 fi
 
 echo "Using Python version: $PYTHON_CMD"
