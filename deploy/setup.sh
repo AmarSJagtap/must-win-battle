@@ -19,10 +19,10 @@ echo "Starting deployment setup for MWB Tracker..."
 echo "Installing system dependencies..."
 if command -v apt &> /dev/null; then
     sudo apt update && sudo apt upgrade -y
-    sudo apt install -y nginx python3 python3-venv python3-pip git curl
+    sudo apt install -y nginx python3 python3-dev python3-venv python3-pip build-essential pkg-config rustc cargo git curl
 elif command -v yum &> /dev/null; then
     sudo yum update -y
-    sudo yum install -y nginx python3.11 python3.11-pip git curl
+    sudo yum install -y nginx python3.11 python3.11-devel python3.11-pip gcc gcc-c++ rust cargo git curl
 else
     echo "Unsupported package manager. Please use Ubuntu (apt) or Amazon Linux (yum)."
     exit 1
