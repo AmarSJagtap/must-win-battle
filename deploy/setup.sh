@@ -4,41 +4,22 @@
 set -e
 
 PYTHON_CMD=""
+PYENV_ROOT="${PYENV_ROOT:-$HOME/.pyenv}"
+PYENV_PYTHON_VERSION="3.12.10"
 
-install_supported_python_apt() {
-    # Check if a supported version is already available
-    for version in 3.13 3.12 3.11 3.10; do
-        if apt-cache show "python${version}" >/dev/null 2>&1 && apt-cache show "python${version}-venv" >/dev/null 2>&1; then
-            sudo apt install -y \
-                "python${version}" \
-                "python${version}-dev" \
-                "python${version}-venv" \
-                python3-pip
-            PYTHON_CMD="python${version}"
-            return 0
-        fi
-    done
+install_python_pyenv() {
+    echo "Installing Python ${PYENV_PYTHON_VERSION} via pyenv..."
+    export PATH="$PYENV_ROOT/bin:$PATH"
 
-    # Fall back to deadsnakes PPA for newer Ubuntu releases that only ship 3.14+
-    echo "No supported Python found in default apt repos. Adding deadsnakes PPA..."
-    sudo apt install -y software-properties-common
-    sudo add-apt-repository ppa:deadsnakes/ppa -y
-    sudo apt update
+    if ! command -v pyenv &> /dev/null; then
+        curl https://pyenv.run | bash
+        export PATH="$PYENV_ROOT/bin:$PATH"
+    fi
 
-    for version in 3.12 3.11 3.13; do
-        if apt-cache show "python${version}" >/dev/null 2>&1; then
-            sudo apt install -y \
-                "python${version}" \
-                "python${version}-dev" \
-                "python${version}-venv" \
-                python3-pip
-            PYTHON_CMD="python${version}"
-            return 0
-        fi
-    done
-
-    echo "No supported Python version (3.10-3.13) is available even via deadsnakes PPA."
-    exit 1
+    eval "$(pyenv init -)"
+    pyenv install -s "$PYENV_PYTHON_VERSION"
+    pyenv global "$PYENV_PYTHON_VERSION"
+    PYTHON_CMD="$(pyenv which python)"
 }
 
 install_nodejs() {
@@ -57,8 +38,11 @@ echo "Starting deployment setup for MWB Tracker..."
 echo "Installing system dependencies..."
 if command -v apt &> /dev/null; then
     sudo apt update && sudo apt upgrade -y
-    sudo apt install -y nginx build-essential pkg-config rustc cargo git curl
-    install_supported_python_apt
+    sudo apt install -y nginx git curl \
+        make build-essential libssl-dev zlib1g-dev libbz2-dev libreadline-dev \
+        libsqlite3-dev libncursesw5-dev xz-utils tk-dev libxml2-dev \
+        libxmlsec1-dev libffi-dev liblzma-dev
+    install_python_pyenv
 elif command -v yum &> /dev/null; then
     sudo yum update -y
     sudo yum install -y nginx python3.11 python3.11-devel python3.11-pip gcc gcc-c++ rust cargo git curl
@@ -101,6 +85,14 @@ cd backend
 
 # Use a supported Python version for binary wheels and Rust-based dependencies.
 if [ -z "$PYTHON_CMD" ]; then
+    export PATH="$PYENV_ROOT/bin:$PATH"
+    if command -v pyenv &> /dev/null; then
+        eval "$(pyenv init -)"
+        PYTHON_CMD="$(pyenv which python 2>/dev/null || true)"
+    fi
+fi
+
+if [ -z "$PYTHON_CMD" ]; then
     for candidate in python3.13 python3.12 python3.11 python3.10; do
         if command -v "$candidate" &> /dev/null; then
             PYTHON_CMD="$candidate"
@@ -138,7 +130,11 @@ fi
 # Start backend with PM2
 echo "Starting backend process..."
 pm2 delete "mwb-backend" >/dev/null 2>&1 || true
-pm2 start "$USER_HOME/must-win-battle/backend/venv/bin/uvicorn" --name "mwb-backend" --cwd "$USER_HOME/must-win-battle/backend" -- main:app --host 127.0.0.1 --port 8000
+pm2 start "$USER_HOME/must-win-battle/backend/venv/bin/uvicorn" \
+    --name "mwb-backend" \
+    --interpreter none \
+    --cwd "$USER_HOME/must-win-battle/backend" \
+    -- main:app --host 127.0.0.1 --port 8000
 pm2 save
 
 # 5. Setup Frontend
