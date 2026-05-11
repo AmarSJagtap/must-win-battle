@@ -6,6 +6,7 @@ set -e
 PYTHON_CMD=""
 
 install_supported_python_apt() {
+    # Check if a supported version is already available
     for version in 3.13 3.12 3.11 3.10; do
         if apt-cache show "python${version}" >/dev/null 2>&1 && apt-cache show "python${version}-venv" >/dev/null 2>&1; then
             sudo apt install -y \
@@ -18,7 +19,25 @@ install_supported_python_apt() {
         fi
     done
 
-    echo "No supported Python version (3.10-3.13) is available from apt on this server."
+    # Fall back to deadsnakes PPA for newer Ubuntu releases that only ship 3.14+
+    echo "No supported Python found in default apt repos. Adding deadsnakes PPA..."
+    sudo apt install -y software-properties-common
+    sudo add-apt-repository ppa:deadsnakes/ppa -y
+    sudo apt update
+
+    for version in 3.12 3.11 3.13; do
+        if apt-cache show "python${version}" >/dev/null 2>&1; then
+            sudo apt install -y \
+                "python${version}" \
+                "python${version}-dev" \
+                "python${version}-venv" \
+                python3-pip
+            PYTHON_CMD="python${version}"
+            return 0
+        fi
+    done
+
+    echo "No supported Python version (3.10-3.13) is available even via deadsnakes PPA."
     exit 1
 }
 
